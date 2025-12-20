@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<h1>Produits</h1>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Titre</th>
+        <th>Prix</th>
+        <th>Publié ?</th>
+        <th></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for product in items %}
+        <tr>
+            <td>{{ product.title }}</td>
+            <td>{{ product.price }} €</td>
+            <td>{{ product.published ? 'Oui' : 'Non' }}</td>
+
+            <td class="text-end">
+                <a href="{{ path('app_product_edit', { resource: 'product', id: product.id }) }}"
+                   class="btn btn-primary btn-sm">
+                    Modifier
+                </a>
+
+                <form method="post"
+                      action="{{ path('app_product_custom', {
+                          resource: 'product',
+                          id: product.id,
+                          action: 'publish'
+                      }) }}"
+                      style="display:inline">
+                    <input type="hidden" name="_token"
+                           value="{{ csrf_token('custom_product_' ~ product.id ~ '_publish') }}">
+                    <button class="btn btn-success btn-sm">Publier</button>
+                </form>
+
+                <form method="post"
+                      action="{{ path('app_product_delete', { resource: 'product', id: product.id }) }}"
+                      onsubmit="return confirm('Supprimer ?');"
+                      style="display:inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ product.id) }}">
+                    <button class="btn btn-danger btn-sm">Supprimer</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<a href="{{ path('app_product_new', { resource: 'product' }) }}" class="btn btn-primary mt-3">
+    Nouveau produit
+</a>
+{% endblock %}

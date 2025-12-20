@@ -1,0 +1,43 @@
+{#
+  Compute base layout safely:
+  - prefer twig_base_layout when provided
+  - else if templates_namespace is provided, build @<ns>/admin/_layout.html.twig
+  - else fallback to '/admin/_layout.html.twig'
+  Use `is defined` to avoid runtime errors when variables are absent.
+  The maker passes a `twig_base_layout` option when available.
+#}
+{%- if twig_base_layout is defined and twig_base_layout is not empty -%}
+    {%- set base_layout = twig_base_layout -%}
+{%- elseif templates_namespace is defined and templates_namespace is not empty -%}
+    {%- set base_layout = '@' ~ templates_namespace ~ '/admin/_layout.html.twig' -%}
+{%- else -%}
+    {%- set base_layout = 'Admin/Partial/_layout-administrator.html.twig' -%}
+{%- endif -%}
+
+{% extends base_layout %}
+
+{% block content %}
+  <h1>
+    {% if entity.id %}
+      {% set __edit_key = resource ~ '.title.edit' %}
+      {% set __edit_val = __edit_key|trans({}, resource) %}
+      {{ __edit_val != __edit_key ? (__edit_val ~ ' #' ~ entity.id) : ('Modifier ' ~ resource|capitalize ~ ' #' ~ entity.id) }}
+    {% else %}
+      {% set __new_key = resource ~ '.title.new' %}
+      {% set __new_val = __new_key|trans({}, resource) %}
+      {{ __new_val != __new_key ? __new_val : ('Nouveau ' ~ resource|capitalize) }}
+    {% endif %}
+  </h1>
+
+  {{ form_start(form) }}
+    {{ form_widget(form) }}
+
+    <button class="btn btn-primary">
+      {{ 'Enregistrer' }}
+    </button>
+
+    <a href="{{ path('neox_crud_admin_crud_index', { resource: resource }) }}" class="btn btn-secondary">
+      Retour à la liste
+    </a>
+  {{ form_end(form) }}
+{% endblock %}

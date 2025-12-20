@@ -1,0 +1,175 @@
+{#
+  Variant of the index template including bulk selection UI (opt-in via --with-bulk-ui)
+  Layout resolution is identical to the default template to preserve BC.
+#}
+{%- if twig_base_layout is defined and twig_base_layout is not empty -%}
+    {%- set base_layout = twig_base_layout -%}
+{%- elseif templates_namespace is defined and templates_namespace is not empty -%}
+    {%- set base_layout = '@' ~ templates_namespace ~ '/admin/_layout.html.twig' -%}
+{%- else -%}
+    {%- set base_layout = 'Admin/Partial/_layout-administrator.html.twig' -%}
+{%- endif -%}
+
+{% extends base_layout %}
+
+{% block content %}
+    {# Safe translation fallback: compare translated value to key (no use of ?? on expressions) #}
+    {% set __title_key = resource ~ '.title.index' %}
+    {% set __title_val = __title_key|trans({}, resource) %}
+    <h1 >{{ __title_val != __title_key ? __title_val : ('Liste des ' ~ resource|capitalize ~ 's') }}</h1 >
+
+    <div class="d-flex gap-2 align-items-center mb-3">
+        <a href="{{ path('neox_crud_admin_crud_new', { resource: resource }) }}" class="btn btn-primary">
+            {% set __new_key = resource ~ '.action.new' %}
+            {% set __new_val = __new_key|trans({}, resource) %}
+            {{ __new_val != __new_key ? __new_val : 'Nouveau' }}
+        </a>
+        {# Optional toolbar buttons configured in handler YAML #}
+        {% if toolbarButtons is defined and toolbarButtons is not empty %}
+            {% for btn in toolbarButtons %}
+                {% set isGet = (btn.method|default('GET')|upper) == 'GET' %}
+                {% if btn.route is defined and btn.route %}
+                    {% set params = (btn.params|default({})) %}
+                    {% set url = path(btn.route, params|merge({ resource: resource })) %}
+                {% elseif btn.path is defined and btn.path %}
+                    {% set url = btn.path %}
+                {% else %}
+                    {% set url = '#' %}
+                {% endif %}
+                {% if isGet %}
+                    <a href="{{ url }}" class="btn btn-sm {{ btn.class|default('btn-outline-secondary') }}" title="{{ btn.label }}">
+                        {% if btn.icon %}<i class="{{ btn.icon }}"></i>{% endif %} {{ btn.label }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    {# Bulk actions toolbar (render only known safe POST custom actions) #}
+    {% if bulkActions is defined and bulkActions is not empty %}
+        <div class="d-flex gap-2 align-items-center mb-2">
+            {% for a in bulkActions %}
+                {% set isPost = (a.method|default('POST')|upper) == 'POST' %}
+                {% if a.route is defined and a.route %}
+                    {% set params = (a.params|default({})) %}
+                    {% set url = path(a.route, params|merge({ resource: resource })) %}
+                {% elseif a.path is defined and a.path %}
+                    {% set url = a.path %}
+                {% else %}
+                    {% set url = '#' %}
+                {% endif %}
+
+                {% if isPost and a.route == 'neox_crud_admin_crud_custom' and a.params.action is defined %}
+                    <form method="post" action="{{ url }}" style="display:inline-block" onsubmit="return {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};">
+                        <input type="hidden" name="_token" value="{{ csrf_token('bulk_' ~ resource ~ '_' ~ a.params.action) }}">
+                        <button class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}" title="{{ a.label }}">
+                            {% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}
+                        </button>
+                    </form>
+                {% else %}
+                    {# Unknown or non-POST bulk action: render disabled for safety #}
+                    <button class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}" disabled title="{{ a.label }}">
+                        {% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}
+                    </button>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <table class="table table-striped" >
+        <thead >
+            <tr >
+                <th>
+                    <input type="checkbox" id="_select_all" onclick="document.querySelectorAll('input[name=\'ids[]\']').forEach(cb => cb.checked = this.checked)">
+                </th>
+                <th >ID</th >
+                {% for field in fields %}
+                    {% set __field_key = resource ~ '.field.' ~ field ~ '.label' %}
+                    {% set __field_val = __field_key|trans({}, resource) %}
+                    <th >{{ __field_val != __field_key ? __field_val : field|capitalize }}</th >
+                {% endfor %}
+                <th >{{ 'Actions' }}</th >
+            </tr >
+        </thead >
+        <tbody >
+            {% for item in items %}
+                <tr >
+                    <td><input type="checkbox" name="ids[]" value="{{ attribute(item, 'id') }}"></td>
+                    <td >{{ attribute(item, 'id') }}</td >
+                    {% for field in fields %}
+                        <td >
+                            {% set value = attribute(item, field) %}
+                            {% if value is iterable %}
+                                {{ value|join(', ') }}
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
+                        </td >
+                    {% endfor %}
+                    <td>
+                        {# Optional per-row actions from handler YAML #}
+                        {% set __id = attribute(item, 'id') %}
+                        {% set actions = (rowActionsById is defined and rowActionsById[__id] is defined) ? rowActionsById[__id] : [] %}
+                        {% if actions is not empty %}
+                            {% for a in actions %}
+                                {% set isGet = (a.method|default('GET')|upper) == 'GET' %}
+                                {% if a.route is defined and a.route %}
+                                    {% set params = (a.params|default({})) %}
+                                    {% set url = path(a.route, params|merge({ resource: resource })) %}
+                                {% elseif a.path is defined and a.path %}
+                                    {% set url = a.path %}
+                                {% else %}
+                                    {% set url = '#' %}
+                                {% endif %}
+
+                                {% if isGet %}
+                                    <a href="{{ url }}" class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}" title="{{ a.label }}">
+                                        {% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}
+                                    </a>
+                                {% else %}
+                                    {# Secure handling for known bundle routes with CSRF #}
+                                    {% if a.route == 'neox_crud_admin_crud_delete' %}
+                                        <form method="post" action="{{ url }}" style="display:inline-block" onsubmit="return {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ __id) }}">
+                                            <button class="btn btn-sm {{ a.class|default('btn-danger') }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
+                                        </form>
+                                    {% elseif a.route == 'neox_crud_admin_crud_custom' and a.params.action is defined %}
+                                        <form method="post" action="{{ url }}" style="display:inline-block" onsubmit="return {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('custom_' ~ resource ~ '_' ~ __id ~ '_' ~ a.params.action) }}">
+                                            <button class="btn btn-sm {{ a.class|default('btn-secondary') }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
+                                        </form>
+                                    {% else %}
+                                        {# Unknown non-GET: render disabled to avoid insecure POST #}
+                                        <button class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}" disabled title="{{ a.label }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            {# Fallback to default Edit/Delete (BC) #}
+                            <a href="{{ path('neox_crud_admin_crud_edit', { resource: resource, id: __id }) }}" class="btn btn-sm btn-secondary" >
+                                {% set __edit_key = resource ~ '.action.edit' %}
+                                {% set __edit_val = __edit_key|trans({}, resource) %}
+                                {{ __edit_val != __edit_key ? __edit_val : 'Éditer' }}
+                            </a>
+                            <form method="post"
+                                  action="{{ path('neox_crud_admin_crud_delete', { resource: resource, id: __id }) }}"
+                                  style="display:inline-block"
+                                  onsubmit="return confirm('Confirmer la suppression ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ __id) }}">
+                                <button class="btn btn-sm btn-danger">
+                                    {% set __del_key = resource ~ '.action.delete' %}
+                                    {% set __del_val = __del_key|trans({}, resource) %}
+                                    {{ __del_val != __del_key ? __del_val : 'Supprimer' }}
+                                </button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr >
+            {% else %}
+                <tr >
+                    <td colspan="{{ 3 + fields|length }}" >Aucun élément.</td >
+                </tr >
+            {% endfor %}
+        </tbody >
+    </table >
+{% endblock %}

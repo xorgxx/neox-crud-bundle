@@ -1,0 +1,7 @@
+services:
+  Neox\NeoxCrudBundle\Crud\EventSubscriber\CrudMercureSubscriber:
+    autowire: true
+    arguments:
+      $hub: '@mercure.hub.default'
+      $topicPrefix: '%neox_crud.mercure.topic_prefix%'
+    tags: ['kernel.event_subscriber']

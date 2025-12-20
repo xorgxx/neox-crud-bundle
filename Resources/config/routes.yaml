@@ -1,0 +1,4 @@
+neox_crud:
+  resource: '@NeoxCrudBundle/Controller/'
+  type: attribute
+  prefix: neox_crud_admin_crud_

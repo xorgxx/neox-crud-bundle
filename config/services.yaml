@@ -1,0 +1,21 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  _instanceof:
+    Neox\NeoxCrudBundle\Crud\CrudHandlerInterface:
+      tags: ['neox_crud.handler']
+
+  Neox\NeoxCrudBundle\Crud\:
+    resource: '../src/Crud/'
+    exclude: '../src/Crud/{Event,EventSubscriber,Exception}'
+
+  Neox\NeoxCrudBundle\Crud\CrudHandlerFactory:
+    arguments:
+      $handlers: !tagged_iterator 'neox_crud.handler'
+
+  # Generic CRUD controller
+  Neox\NeoxCrudBundle\Controller\GenericCrudController:
+    public: true
+    tags: ['controller.service_arguments']

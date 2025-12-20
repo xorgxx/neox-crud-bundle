@@ -1,0 +1,8 @@
+neox_crud:
+  translations:
+    field_keys: ['label', 'placeholder', 'help']
+    patterns:
+      placeholder: 'Saisir votre %field_label%'
+      help: 'Aide pour %field_label%'
+  mercure:
+    enabled: false

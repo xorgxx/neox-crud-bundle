@@ -1,0 +1,44 @@
+index_fields:
+  # simple string
+  - id
+  # map entry with name
+  - { name: 'title', format: 'text' }
+  # boolean with icon rendering
+  - { name: 'enabled', boolean_icon: true }
+  # image rendering
+  - { name: 'imagePath', type: 'image', class: 'thumb-48' }
+  # date formatting
+  - { name: 'createdAt', format: 'Y-m-d' }
+  # voters as string and array
+  - { name: 'roles', voters: ['ROLE_ADMIN', 'ROLE_MANAGER'] }
+  - { name: 'secret', voter: 'ROLE_SUPER_ADMIN' }
+
+neox_crud:
+  actions:
+    - name: edit
+      label: "Editer"
+      route: "neox_crud_admin_crud_edit"
+      params: { id: "entity.id" }
+      priority: 10
+    - name: delete
+      label: "Supprimer"
+      route: "neox_crud_admin_crud_delete"
+      method: DELETE
+      params: { id: "entity.id" }
+      confirm: "Confirmer ?"
+      class: "btn-outline-danger"
+      priority: 5
+      if: "!entity.archived"
+  bulk_actions:
+    - name: bulk_delete
+      label: "Supprimer sélection"
+      route: "neox_crud_admin_crud_custom"
+      method: POST
+      params: { action: "bulk_delete" }
+      selection_required: true
+  toolbar_buttons:
+    - name: export_csv
+      label: "Exporter CSV"
+      route: "neox_crud_admin_crud_custom"
+      method: GET
+      params: { action: "export_csv" }

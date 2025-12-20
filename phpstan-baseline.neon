@@ -1,0 +1,301 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Throwing object of an unknown class Symfony\\\\Component\\\\Security\\\\Core\\\\Exception\\\\AccessDeniedException\\.$#"
+			count: 1
+			path: src/Controller/GenericCrudController.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:filterOptions\\(\\) has parameter \\$opts with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:filterOptions\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:findAll\\(\\) return type has no value type specified in iterable type iterable\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:findList\\(\\) return type has no value type specified in iterable type iterable\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:getBulkActions\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:getIndexFieldOptions\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:getRedirectAfterAction\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:getRedirectAfterCreate\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:getRedirectAfterDelete\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:getRedirectAfterUpdate\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:getRowActionsFor\\(\\) has parameter \\$context with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:getRowActionsFor\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:getToolbarButtons\\(\\) has parameter \\$context with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:getToolbarButtons\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:hydrateUiConfig\\(\\) has parameter \\$data with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:loadIndexFieldsFromConfig\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Offset 'index_fields' on array on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Offset 'priority' on array\\{name\\: string, label\\: string, icon\\: string\\|null, route\\: string\\|null, path\\: string\\|null, method\\: string, confirm\\: string\\|null, class\\: string\\|null, \\.\\.\\.\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 2
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Parameter \\#1 \\$className of method Doctrine\\\\ORM\\\\EntityManagerInterface\\:\\:getRepository\\(\\) expects class\\-string\\<object\\>, string given\\.$#"
+			count: 3
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Property Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:\\$indexFieldOptions type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Property Neox\\\\NeoxCrudBundle\\\\Crud\\\\AbstractDoctrineCrudHandler\\:\\:\\$uiConfig type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Unable to resolve the template type T in call to method Doctrine\\\\ORM\\\\EntityManagerInterface\\:\\:getRepository\\(\\)$#"
+			count: 3
+			path: src/Crud/AbstractDoctrineCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\CrudFinderInterface\\:\\:findAll\\(\\) return type has no value type specified in iterable type iterable\\.$#"
+			count: 1
+			path: src/Crud/CrudFinderInterface.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\CrudHandlerInterface\\:\\:findAll\\(\\) return type has no value type specified in iterable type iterable\\.$#"
+			count: 1
+			path: src/Crud/CrudHandlerInterface.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\CrudHandlerInterface\\:\\:findList\\(\\) return type has no value type specified in iterable type iterable\\.$#"
+			count: 1
+			path: src/Crud/CrudHandlerInterface.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\CrudHandlerInterface\\:\\:getRedirectAfterAction\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/CrudHandlerInterface.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\CrudHandlerInterface\\:\\:getRedirectAfterCreate\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/CrudHandlerInterface.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\CrudHandlerInterface\\:\\:getRedirectAfterDelete\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/CrudHandlerInterface.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Crud\\\\CrudHandlerInterface\\:\\:getRedirectAfterUpdate\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Crud/CrudHandlerInterface.php
+
+		-
+			message: "#^Call to method publish\\(\\) on an unknown class Symfony\\\\Component\\\\Mercure\\\\HubInterface\\.$#"
+			count: 2
+			path: src/Crud/EventSubscriber/CrudMercureSubscriber.php
+
+		-
+			message: "#^Instantiated class Symfony\\\\Component\\\\Mercure\\\\Update not found\\.$#"
+			count: 2
+			path: src/Crud/EventSubscriber/CrudMercureSubscriber.php
+
+		-
+			message: "#^Parameter \\$hub of method Neox\\\\NeoxCrudBundle\\\\Crud\\\\EventSubscriber\\\\CrudMercureSubscriber\\:\\:__construct\\(\\) has invalid type Symfony\\\\Component\\\\Mercure\\\\HubInterface\\.$#"
+			count: 1
+			path: src/Crud/EventSubscriber/CrudMercureSubscriber.php
+
+		-
+			message: "#^Property Neox\\\\NeoxCrudBundle\\\\Crud\\\\EventSubscriber\\\\CrudMercureSubscriber\\:\\:\\$hub has unknown class Symfony\\\\Component\\\\Mercure\\\\HubInterface as its type\\.$#"
+			count: 1
+			path: src/Crud/EventSubscriber/CrudMercureSubscriber.php
+
+		-
+			message: "#^Parameter \\#1 \\$class of method Neox\\\\NeoxCrudBundle\\\\Maker\\\\Contract\\\\DoctrineEntityHelperInterface\\:\\:getMetadata\\(\\) expects class\\-string, string given\\.$#"
+			count: 1
+			path: src/Maker/MakeCrudHandler.php
+
+		-
+			message: "#^Method Neox\\\\NeoxCrudBundle\\\\Maker\\\\NeoxCrudMaker\\:\\:__construct\\(\\) has parameter \\$makers with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Maker/NeoxCrudMaker.php
+
+		-
+			message: "#^Parameter \\#1 \\$class of method Neox\\\\NeoxCrudBundle\\\\Maker\\\\Contract\\\\DoctrineEntityHelperInterface\\:\\:getMetadata\\(\\) expects class\\-string, string given\\.$#"
+			count: 1
+			path: src/Maker/NeoxCrudMaker.php
+
+		-
+			message: "#^Property Neox\\\\NeoxCrudBundle\\\\Maker\\\\NeoxCrudMaker\\:\\:\\$defaultBaseLayout is never read, only written\\.$#"
+			count: 1
+			path: src/Maker/NeoxCrudMaker.php
+
+		-
+			message: "#^Property Neox\\\\NeoxCrudBundle\\\\Maker\\\\NeoxCrudMaker\\:\\:\\$templatesNamespace is never read, only written\\.$#"
+			count: 1
+			path: src/Maker/NeoxCrudMaker.php
+
+		-
+			message: "#^Variable \\$class_name might not be defined\\.$#"
+			count: 1
+			path: src/Maker/tpl/CrudHandler.tpl.php
+
+		-
+			message: "#^Variable \\$entity_class might not be defined\\.$#"
+			count: 3
+			path: src/Maker/tpl/CrudHandler.tpl.php
+
+		-
+			message: "#^Variable \\$form_type might not be defined\\.$#"
+			count: 2
+			path: src/Maker/tpl/CrudHandler.tpl.php
+
+		-
+			message: "#^Variable \\$namespace might not be defined\\.$#"
+			count: 1
+			path: src/Maker/tpl/CrudHandler.tpl.php
+
+		-
+			message: "#^Variable \\$resource might not be defined\\.$#"
+			count: 5
+			path: src/Maker/tpl/CrudHandler.tpl.php
+
+		-
+			message: "#^Variable \\$template_prefix might not be defined\\.$#"
+			count: 1
+			path: src/Maker/tpl/CrudHandler.tpl.php
+
+		-
+			message: "#^Variable \\$class_name might not be defined\\.$#"
+			count: 1
+			path: src/Maker/tpl/NeoxCrudController.tpl.php
+
+		-
+			message: "#^Variable \\$resource might not be defined\\.$#"
+			count: 2
+			path: src/Maker/tpl/NeoxCrudController.tpl.php
+
+		-
+			message: "#^Variable \\$entity_class might not be defined\\.$#"
+			count: 2
+			path: src/Maker/tpl/NeoxCrudFormType.tpl.php
+
+		-
+			message: "#^Variable \\$field_keys might not be defined\\.$#"
+			count: 1
+			path: src/Maker/tpl/NeoxCrudFormType.tpl.php
+
+		-
+			message: "#^Variable \\$form_class_name might not be defined\\.$#"
+			count: 1
+			path: src/Maker/tpl/NeoxCrudFormType.tpl.php
+
+		-
+			message: "#^Variable \\$form_fields might not be defined\\.$#"
+			count: 1
+			path: src/Maker/tpl/NeoxCrudFormType.tpl.php
+
+		-
+			message: "#^Variable \\$resource might not be defined\\.$#"
+			count: 5
+			path: src/Maker/tpl/NeoxCrudFormType.tpl.php
+
+		-
+			message: "#^Method class@anonymous/tests/CrudHandlerFactoryTest\\.php\\:15\\:\\:findAll\\(\\) return type has no value type specified in iterable type iterable\\.$#"
+			count: 1
+			path: tests/CrudHandlerFactoryTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/CrudHandlerFactoryTest\\.php\\:15\\:\\:findList\\(\\) return type has no value type specified in iterable type iterable\\.$#"
+			count: 1
+			path: tests/CrudHandlerFactoryTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/CrudHandlerFactoryTest\\.php\\:15\\:\\:getRedirectAfterAction\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/CrudHandlerFactoryTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/CrudHandlerFactoryTest\\.php\\:15\\:\\:getRedirectAfterCreate\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/CrudHandlerFactoryTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/CrudHandlerFactoryTest\\.php\\:15\\:\\:getRedirectAfterDelete\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/CrudHandlerFactoryTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/CrudHandlerFactoryTest\\.php\\:15\\:\\:getRedirectAfterUpdate\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/CrudHandlerFactoryTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/Unit/Crud/AppendDefaultActionsTest\\.php\\:153\\:\\:getId\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: tests/Unit/Crud/AppendDefaultActionsTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/Unit/Crud/AppendDefaultActionsTest\\.php\\:84\\:\\:getId\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: tests/Unit/Crud/AppendDefaultActionsTest.php

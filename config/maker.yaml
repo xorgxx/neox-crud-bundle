@@ -1,0 +1,28 @@
+services:
+  Neox\NeoxCrudBundle\Maker\MakeCrudHandler:
+    arguments:
+      $doctrineHelper: '@neox_crud.maker.doctrine_helper_adapter'
+    tags: ['maker.command']
+
+  Neox\NeoxCrudBundle\Maker\NeoxCrudMaker:
+    autowire: true
+    arguments:
+      $doctrineHelper: '@neox_crud.maker.doctrine_helper_adapter'
+      $fieldKeys: '%neox_crud.translations.field_keys%'
+      $patterns: '%neox_crud.translations.patterns%'
+      $makers: '%neox_crud.makers%'
+    tags: ['maker.command']
+#    calls:
+#      - method: setTemplatesNamespace
+#        arguments: ['%neox_crud.makers.templates_namespace%']
+#      - method: setBaseLayout
+#        arguments: ['%neox_crud.makers.base_layout%']
+
+  # Adapter to avoid typing directly on MakerBundle's internal DoctrineHelper
+  neox_crud.maker.doctrine_helper_adapter:
+    class: Neox\NeoxCrudBundle\Maker\Bridge\MakerBundleDoctrineHelperAdapter
+    arguments:
+      - '@maker.doctrine_helper'
+
+  # Bind our interface to the adapter for autowiring
+  Neox\NeoxCrudBundle\Maker\Contract\DoctrineEntityHelperInterface: '@neox_crud.maker.doctrine_helper_adapter'

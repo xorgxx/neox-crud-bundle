@@ -1,0 +1,3 @@
+app_product_crud:
+    resource: App\Controller\ProductCrudController
+    type: attribute

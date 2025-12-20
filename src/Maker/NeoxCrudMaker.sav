@@ -1,0 +1,213 @@
+<?php
+namespace Neox\CrudBundle\Maker;
+
+use Symfony\Bundle\MakerBundle\ConsoleStyle;
+use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
+use Symfony\Bundle\MakerBundle\Generator;
+use Symfony\Bundle\MakerBundle\InputConfiguration;
+use Symfony\Bundle\MakerBundle\Maker\AbstractMaker;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+
+/**
+ * make:neox:crud
+ *
+ * Génère un CRUD complet basé sur GenericCrudController + handler :
+ *  - Handler CRUD
+ *  - FormType
+ *  - Templates Twig index + form
+ *  - (optionnel) fichier de traduction.
+ *
+ * La structure + le contenu par défaut du fichier de traduction sont pilotés par la config :
+ *
+ * neox_crud:
+ *   translations:
+ *     field_keys: [label, placeholder, help]
+ *     patterns:
+ *       placeholder: 'Saisir votre %field_label%'
+ *       help: 'Aide pour %field_label%'
+ */
+class NeoxCrudMaker extends AbstractMaker
+{
+    /**
+     * @param string[] $fieldKeys
+     * @param array<string,string> $patterns
+     */
+    public function __construct(
+        private DoctrineHelper $doctrineHelper,
+        private array $fieldKeys = ['label', 'placeholder'],
+        private array $patterns = [],
+    ) {
+    }
+
+    public static function getCommandName(): string
+    {
+        return 'make:neox:crud';
+    }
+
+    public static function getCommandDescription(): string
+    {
+        return 'Crée un CRUD complet (handler + form + templates + traductions optionnelles)';
+    }
+
+    public function configureCommand(Command $command, InputConfiguration $inputConfig): void
+    {
+        $command
+            ->setHelp('Ce maker génère un CRUD complet pour une entité, en utilisant le GenericCrudController et les handlers.')
+            ->addArgument('entity-class', InputArgument::REQUIRED, 'Classe de l’entité (FQCN ou raccourci, ex: App\\Entity\\Product ou Product)')
+            ->addOption('resource', null, InputOption::VALUE_OPTIONAL, 'Nom de la ressource (slug, ex: product). Par défaut: nom d\'entité en camelCase.', null)
+            ->addOption('with-trans', null, InputOption::VALUE_NONE, 'Créer un fichier de traduction pour ce CRUD')
+            ->addOption('locale', null, InputOption::VALUE_OPTIONAL, 'Locale pour le fichier de traduction (si --with-trans)', 'fr')
+        ;
+    }
+
+    public function interact(InputInterface $input, ConsoleStyle $io, Command $command): void
+    {
+        // On reste simple : pas d'interaction avancée, tout passe par les options.
+    }
+
+    public function generate(InputInterface $input, ConsoleStyle $io, Generator $generator): void
+    {
+        $entityClassInput = (string) $input->getArgument('entity-class');
+
+        if (!str_contains($entityClassInput, '\\')) {
+            $entityClass = $this->doctrineHelper->getEntityNamespace() . '\\' . $entityClassInput;
+        } else {
+            $entityClass = $entityClassInput;
+        }
+
+        $entityMetadata = $this->doctrineHelper->getMetadata($entityClass);
+        $entityShortName = $entityMetadata->getReflectionClass()->getShortName();
+
+        $resourceOption = $input->getOption('resource');
+        $resourceSlug = $resourceOption ? strtolower((string) $resourceOption) : strtolower($entityShortName);
+
+        $formClassNameDetails = $generator->createClassNameDetails(
+            $entityShortName . 'Type',
+            'Form\\'
+        );
+
+        $formFqcn = $formClassNameDetails->getFullName();
+        $templatePrefix = 'admin/' . $resourceSlug;
+
+        // 1) Générer le FormType (avec liens vers les clés de traduction)
+        $fieldNames = array_filter(
+            $entityMetadata->getFieldNames(),
+            static fn(string $field): bool => $field !== 'id'
+        );
+
+        $generator->generateClass(
+            $formClassNameDetails->getFullName(),
+            __DIR__ . '/tpl/NeoxCrudFormType.tpl.php',
+            [
+                'entity_class'      => $entityClass,
+                'form_class_name'   => $formClassNameDetails->getShortName(),
+                'fields'            => $fieldNames,
+                'resource'          => $resourceSlug,
+                'field_keys'        => $this->fieldKeys,
+            ]
+        );
+
+        // 2) Générer le handler
+        $handlerClassNameDetails = $generator->createClassNameDetails(
+            $entityShortName . 'CrudHandler',
+            'Crud\\Handler\\'
+        );
+
+        $generator->generateClass(
+            $handlerClassNameDetails->getFullName(),
+            __DIR__ . '/tpl/NeoxCrudHandler.tpl.php',
+            [
+                'resource'        => $resourceSlug,
+                'entity_class'    => $entityClass,
+                'form_type'       => $formFqcn,
+                'template_prefix' => $templatePrefix,
+                'class_name'      => $handlerClassNameDetails->getShortName(),
+            ]
+        );
+
+        // 3) Générer les templates Twig
+        $indexTemplatePath = 'templates/' . $templatePrefix . '/index.html.twig';
+        $formTemplatePath  = 'templates/' . $templatePrefix . '/form.html.twig';
+
+        $generator->generateFile(
+            $indexTemplatePath,
+            $generator->getTemplateRenderer()->render(
+                __DIR__ . '/tpl/NeoxCrudIndex.tpl.twig',
+                [
+                    'resource'    => $resourceSlug,
+                    'fields'      => $fieldNames,
+                ]
+            )
+        );
+
+        $generator->generateFile(
+            $formTemplatePath,
+            $generator->getTemplateRenderer()->render(
+                __DIR__ . '/tpl/NeoxCrudForm.tpl.twig',
+                [
+                    'resource'    => $resourceSlug,
+                ]
+            )
+        );
+
+        // 4) Optionnel : fichier de traduction
+        if ($input->getOption('with-trans')) {
+            $locale = (string) $input->getOption('locale');
+            $transPath = sprintf('translations/%s.%s.yaml', $resourceSlug, $locale);
+
+            $labelBase = ucfirst($resourceSlug);
+
+            $lines = [];
+            $lines[] = sprintf('%s:', $resourceSlug);
+            $lines[] = sprintf('  title:');
+            $lines[] = sprintf('    index: \'Liste des %ss\'', $labelBase);
+            $lines[] = sprintf('    new: \'Nouveau %s\'', $labelBase);
+            $lines[] = sprintf('    edit: \'Modifier %s\'', $labelBase);
+            $lines[] = sprintf('  field:');
+            foreach ($fieldNames as $field) {
+                $lines[] = sprintf('    %s:', $field);
+                $pretty = ucfirst(str_replace('_', ' ', $field));
+
+                foreach ($this->fieldKeys as $key) {
+                    if ($key === 'label') {
+                        $value = $pretty;
+                    } else {
+                        $pattern = $this->patterns[$key] ?? '';
+                        if ($pattern !== '') {
+                            $value = strtr($pattern, [
+                                '%field%'        => $field,
+                                '%field_label%'  => $pretty,
+                                '%resource%'     => $resourceSlug,
+                            ]);
+                        } else {
+                            $value = '';
+                        }
+                    }
+                    $lines[] = sprintf('      %s: '%s', $key, str_replace("'", "\'", $value));
+                }
+            }
+            $lines[] = sprintf('  action:');
+            $lines[] = "    new: 'Nouveau'";
+            $lines[] = "    edit: 'Éditer'";
+            $lines[] = "    delete: 'Supprimer'";
+
+            $generator->generateFile(
+                $transPath,
+                implode("\n", $lines) . "\n"
+            );
+        }
+
+        $generator->writeChanges();
+
+        $io->success(sprintf('CRUD Neox généré pour %s', $entityClass));
+        $io->text([
+            'Routes disponibles :',
+            sprintf('- /admin/%s', $resourceSlug),
+            sprintf('- /admin/%s/new', $resourceSlug),
+            sprintf('- /admin/%s/{id}/edit', $resourceSlug),
+        ]);
+    }
+}

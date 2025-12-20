@@ -1,0 +1,55 @@
+{
+  "name": "xorgxx/neox-crud-bundle",
+  "description": "Neox CRUD Bundle: generic factory-based CRUD with handlers, events, Mercure and makers.",
+  "type": "symfony-bundle",
+  "version": "1.0.0",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Neox\\NeoxCrudBundle\\": "src/"
+    },
+    "exclude-from-classmap": [
+      "src/Maker/tpl/"
+    ]
+  },
+     "config": {
+         "platform": {
+             "php": "8.3"
+         },
+         "sort-packages": true
+     },
+  "require": {
+    "php": "^8.3",
+    "symfony/framework-bundle": "^7.3",
+    "symfony/event-dispatcher": "^7.3",
+    "symfony/form": "^7.3",
+    "symfony/http-foundation": "^7.3",
+    "symfony/routing": "^7.3",
+    "symfony/yaml": "^7.3"
+  },
+  "require-dev": {
+    "doctrine/orm": "3.3",
+    "friendsofphp/php-cs-fixer": "^3.64",
+    "minishlink/web-push": "^7.0|^8.0",
+    "phpspec/prophecy": "^1.18",
+    "phpspec/prophecy-phpunit": "^2.0",
+    "phpstan/phpstan": "^1.11",
+    "phpunit/phpunit": "^11.0",
+    "symfony/maker-bundle": "^1.0"
+  },
+  "suggest": {
+    "symfony/mercure-bundle": "To enable Mercure subscriber for CRUD events"
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-main": "1.0-dev"
+    }
+  },
+     "scripts": {
+         "test": "@php -d zend.assertions=1 -d assert.exception=1 vendor/bin/phpunit -c phpunit.xml.dist",
+         "test:coverage": "@php -d xdebug.mode=coverage -d zend.assertions=1 -d assert.exception=1 vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover var/coverage.xml --coverage-text",
+         "cs-fix": "@php vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php",
+         "lint": "@php vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff",
+         "analyse": "@php vendor/bin/phpstan analyse --configuration=phpstan.neon.dist"
+     }
+ }

@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+  <div class="container mt-4">
+    <h1>Dashboard</h1>
+
+    <a href="{{ path('neox_crud_admin_crud_new', { resource: 'product' }) }}" class="btn btn-primary mb-3">
+      Nouveau produit
+    </a>
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nom</th>
+          <th>Publié</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for product in products %}
+        <tr>
+          <td>{{ product.id }}</td>
+          <td>{{ product.name }}</td>
+          <td>{{ product.published ? 'Oui' : 'Non' }}</td>
+          <td>
+            <a href="{{ path('neox_crud_admin_crud_edit', { resource: 'product', id: product.id }) }}" class="btn btn-sm btn-secondary">
+              Éditer
+            </a>
+            <a href="{{ path('neox_crud_admin_crud_custom', { resource: 'product', id: product.id, action: 'publish' }) }}" class="btn btn-sm btn-success">
+              Publier
+            </a>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="4">Aucun produit.</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
