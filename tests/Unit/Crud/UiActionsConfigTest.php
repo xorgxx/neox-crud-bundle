@@ -44,6 +44,10 @@ final class UiActionsConfigTest extends TestCase
         $this->assertIsArray($firstToolbar);
         $this->assertArrayHasKey('name', $firstToolbar);
         $this->assertSame('export_csv', $firstToolbar['name']);
+        $this->assertArrayHasKey('turbo', $firstToolbar);
+        $this->assertIsArray($firstToolbar['turbo']);
+        $this->assertArrayHasKey('enabled', $firstToolbar['turbo']);
+        $this->assertFalse($firstToolbar['turbo']['enabled']);
 
         $bulk = $handler->getBulkActions();
         $this->assertIsArray($bulk);
@@ -76,6 +80,18 @@ final class UiActionsConfigTest extends TestCase
         $this->assertSame(['edit', 'delete'], array_map(static function ($a) {
             return is_array($a) && array_key_exists('name', $a) ? $a['name'] : null;
         }, $row));
+
+        $this->assertArrayHasKey('turbo', $row[0]);
+        $this->assertIsArray($row[0]['turbo']);
+        $this->assertArrayHasKey('frame', $row[0]['turbo']);
+        $this->assertSame('crud_table', $row[0]['turbo']['frame']);
+
+        $this->assertArrayHasKey('turbo', $row[1]);
+        $this->assertIsArray($row[1]['turbo']);
+        $this->assertArrayHasKey('enabled', $row[1]['turbo']);
+        $this->assertFalse($row[1]['turbo']['enabled']);
+        $this->assertArrayHasKey('confirm', $row[1]);
+        $this->assertSame('Turbo confirmer ?', $row[1]['confirm']);
 
         // Params should be resolved from entity.id
         $edit = $row[0];

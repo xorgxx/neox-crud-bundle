@@ -43,6 +43,11 @@ neox_crud:
     field_keys: ['label', 'placeholder']
     # Motifs par clé (placeholders: %field%, %field_label%, %resource%)
     patterns: {}
+
+  live_table:
+    enabled: false
+    default_per_page: 25
+    max_per_page: 100
 ```
 
 Détails des options
@@ -108,7 +113,24 @@ Détails des options
 - Défaut: {}
 - Effet: Modèles de texte utilisés par le Maker pour préremplir certaines clés. Les modèles peuvent référencer `%field_label%` (ou d’autres variables futures) pour interpoler une valeur lisible.
 
-5) Surcharges YAML par handler (index_fields)
+5) live_table
+- Type: objet
+- Description: Options globales pour la table d’index interactive (Pagerfanta + Symfony UX LiveComponent). Fonctionnalité opt-in.
+
+5.1) live_table.enabled
+- Type: bool
+- Défaut: false
+- Effet: Active l’index live par défaut. Peut être surchargé par handler via la clé YAML `live_table`.
+
+5.2) live_table.default_per_page
+- Type: int
+- Défaut: 25
+
+5.3) live_table.max_per_page
+- Type: int
+- Défaut: 100
+
+6) Surcharges YAML par handler (index_fields)
 - Type: basé sur fichier (optionnel)
 - Défaut: non utilisé
 - Effet: Définir quels champs apparaissent dans le tableau de la vue index pour un handler donné, sans surcharger le code PHP.
@@ -118,7 +140,7 @@ Emplacement (premier trouvé l’emporte), relatif au fichier de votre classe ha
 - `src/Crud/Handler/ProductCrudHandler/ProductCrudHandler.yaml`
   - `src/Crud/Handler/ProductCrudHandler/config/crud.yaml`
 
-5.1) Actions UI par handler (opt-in)
+6.1) Actions UI par handler (opt-in)
 - Type : basé fichier (optionnel)
 - Défaut : non utilisé
 - Effet : configure les boutons d’actions de la vue index sans changer le PHP. Totalement rétrocompatible. Si absent, les templates gardent leur rendu par défaut.
@@ -141,6 +163,10 @@ Options par action/bouton :
 - `voters` (string ou liste<string> ; visibilité/autorisation gérée par votre Voter si vous en utilisez)
 - `if` (string|bool ; condition simple évaluée sur `entity.*` ou `context.*`)
 - `selection_required` (bool ; bulk uniquement, défaut true)
+- `turbo` (bool|map ; optionnel) :
+  - `false` ou `{ enabled: false }` → ajoute `data-turbo="false"`
+  - `{ frame: "_top"|"crud_table"|"<frame_id>" }` → ajoute `data-turbo-frame="..."`
+  - `{ confirm: "..." }` → ajoute `data-turbo-confirm="..."` et surcharge `confirm`
 
 Paramètres dynamiques et conditions
 - Vous pouvez référencer des valeurs de l’entité et du contexte dans `params` et `if` via :
@@ -277,6 +303,60 @@ Options reconnues actuellement (liste non exhaustive) :
 - `type` : string. Par ex. `image` pour suggérer un rendu en `<img>` utilisant la valeur du champ comme URL/chemin.
 - `class` : string. Classe(s) CSS supplémentaires à appliquer (par ex. sur l’image).
 - `voters` ou `voter` : string ou string[] d’attributs de sécurité ; le template/contrôleur peut s’en servir pour masquer un champ si non autorisé.
+
+Options de requête (opt-in, table live)
+------------------------------------
+
+En plus des options de rendu, `index_fields` peut porter des capacités de requête pour la table live (sans config dupliquée) :
+- `sortable` : bool (défaut: false)
+- `searchable` : bool (défaut: false)
+- `filter` : map (optionnel), ex. `{ type: boolean }`, `{ type: choice, choices: { Yes: '1', No: '0' } }`, `{ type: date }`
+- `join` : `left|inner` (optionnel, défaut: left) pour les champs en dot-notation
+- `query_path` : string (optionnel) si le champ UI diffère du chemin Doctrine
+
+Surcharge handler (activation live)
+----------------------------------
+
+Vous pouvez activer/désactiver l’index live par handler avec la clé `live_table` (bool), soit à plat soit sous `neox_crud:` :
+
+```yaml
+live_table: true
+
+# ou
+neox_crud:
+  live_table: true
+```
+
+Sélection multiple + actions de masse (table live)
+-------------------------------------------------
+
+Lorsque la table live est activée et que des `bulk_actions` sont configurées dans le YAML du handler, la table affiche :
+- une colonne de cases à cocher par ligne,
+- un compteur de sélection,
+- un bouton « Select page » (sélectionner la page courante),
+- un bouton « Clear » (vider la sélection).
+
+Exécution des actions de masse
+
+- Les actions de masse proviennent uniquement de `bulk_actions` (pas d’input utilisateur brut).
+- Les actions non‑GET sont rendues sous forme de formulaire POST (sécurité CSRF) et envoient la sélection sous la clé `ids`.
+- Format envoyé : `ids` contient un JSON (liste) des IDs sélectionnés.
+- Pour les routes custom (`neox_crud_admin_crud_custom`), le token CSRF est généré avec l’ID `custom_<resource>_0_<action>`.
+
+Exemple côté handler (lecture de `ids`)
+
+Dans votre `supportsAction()` / `handleAction()`, vous pouvez traiter une action `bulk_delete` ainsi :
+
+```php
+$idsRaw = $request->request->get('ids');
+$ids = is_string($idsRaw) ? json_decode($idsRaw, true) : $idsRaw;
+if (!is_array($ids)) {
+    $ids = [];
+}
+foreach ($ids as $id) {
+    // find + revalider droits + modifier/supprimer
+}
+```
 
 Note : Le contrat des templates reste inchangé. Les templates existants peuvent continuer à utiliser `fields` (noms seuls). Si vous adoptez les attributs, lisez aussi `field_options` depuis le contexte transmis par le contrôleur : un tableau associatif indexé par nom de champ → options.
 

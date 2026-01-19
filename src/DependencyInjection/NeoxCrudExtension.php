@@ -37,6 +37,12 @@ class NeoxCrudExtension extends Extension implements PrependExtensionInterface
         if (!empty($config['mercure']['enabled']) && interface_exists(HubInterface::class)) {
             $loader->load('mercure.yaml');
         }
+        if (\class_exists('Symfony\\UX\\LiveComponent\\Attribute\\AsLiveComponent')
+            && \class_exists('Pagerfanta\\Pagerfanta')
+            && (\class_exists('Pagerfanta\\Doctrine\\ORM\\QueryAdapter')
+                || \class_exists('Pagerfanta\\Adapter\\Doctrine\\ORM\\QueryAdapter'))) {
+            $loader->load('live_table.yaml');
+        }
 
         $container->setParameter('neox_crud.mercure.topic_prefix', $config['mercure']['topic_prefix']);
         $container->setParameter('neox_crud.translations.field_keys', $config['translations']['field_keys']);
@@ -45,6 +51,10 @@ class NeoxCrudExtension extends Extension implements PrependExtensionInterface
         $container->setParameter('neox_crud.makers.templates_namespace', $config['makers']['templates_namespace'] ?? 'NeoxCrud');
         $container->setParameter('neox_crud.makers.base_layout', $config['makers']['base_layout'] ?? null);
         $container->setParameter('neox_crud.makers', $config['makers'] ?? null);
+
+        $container->setParameter('neox_crud.live_table.enabled', (bool) ($config['live_table']['enabled'] ?? false));
+        $container->setParameter('neox_crud.live_table.default_per_page', (int) ($config['live_table']['default_per_page'] ?? 25));
+        $container->setParameter('neox_crud.live_table.max_per_page', (int) ($config['live_table']['max_per_page'] ?? 100));
 
     }
 

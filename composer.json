@@ -38,7 +38,11 @@
     "symfony/maker-bundle": "^1.0"
   },
   "suggest": {
-    "symfony/mercure-bundle": "To enable Mercure subscriber for CRUD events"
+    "symfony/mercure-bundle": "To enable Mercure subscriber for CRUD events",
+    "symfony/ux-twig-component": "Required to render components() in Twig (dependency of UX LiveComponent)",
+    "symfony/ux-live-component": "Optional: enable the opt-in live_table (interactive server-side index table)",
+    "pagerfanta/pagerfanta": "Optional: enable the opt-in live_table pagination",
+    "pagerfanta/doctrine-orm-adapter": "Optional: enable the opt-in live_table with Doctrine ORM (QueryAdapter)"
   },
   "extra": {
     "branch-alias": {

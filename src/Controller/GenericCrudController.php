@@ -66,6 +66,38 @@ class GenericCrudController extends AbstractController
             }
         }
 
+        $liveEnabled = null;
+        if (method_exists($handler, 'getLiveTableEnabled')) {
+            $liveEnabled = $handler->getLiveTableEnabled();
+        }
+        if ($liveEnabled === null) {
+            $liveEnabled = (bool) $this->getParameter('neox_crud.live_table.enabled');
+        }
+
+        $depsOk = \class_exists('Symfony\\UX\\LiveComponent\\Attribute\\AsLiveComponent')
+            && \class_exists('Pagerfanta\\Pagerfanta')
+            && (\class_exists('Pagerfanta\\Doctrine\\ORM\\QueryAdapter')
+                || \class_exists('Pagerfanta\\Adapter\\Doctrine\\ORM\\QueryAdapter'));
+
+        if ($liveEnabled && $depsOk) {
+            $baseLayout = $this->getParameter('neox_crud.makers.base_layout');
+            if (!\is_string($baseLayout) || $baseLayout === '') {
+                $baseLayout = '@NeoxCrud/admin/_layout.html.twig';
+            }
+
+            return $this->render('@NeoxCrud/neox_crud/index_live.html.twig', [
+                'items'    => $items,
+                'resource' => $resource,
+                'fields'   => $handler->getIndexFields(),
+                'field_options' => method_exists($handler, 'getIndexFieldOptions') ? $handler->getIndexFieldOptions() : [],
+                'handler' => $handler,
+                'toolbarButtons' => $toolbarButtons,
+                'bulkActions'    => $bulkActions,
+                'rowActionsById' => $rowActionsById,
+                'base_layout' => $baseLayout,
+            ]);
+        }
+
         return $this->render($handler->getTemplatePrefix() . '/index.html.twig', [
             'items'    => $items,
             'resource' => $resource,

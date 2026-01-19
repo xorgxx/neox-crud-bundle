@@ -20,12 +20,14 @@ neox_crud:
       route: "neox_crud_admin_crud_edit"
       params: { id: "entity.id" }
       priority: 10
+      turbo: { frame: "crud_table" }
     - name: delete
       label: "Supprimer"
       route: "neox_crud_admin_crud_delete"
       method: DELETE
       params: { id: "entity.id" }
       confirm: "Confirmer ?"
+      turbo: { confirm: "Turbo confirmer ?", enabled: false }
       class: "btn-outline-danger"
       priority: 5
       if: "!entity.archived"
@@ -42,3 +44,4 @@ neox_crud:
       route: "neox_crud_admin_crud_custom"
       method: GET
       params: { action: "export_csv" }
+      turbo: false

@@ -174,6 +174,7 @@ abstract class AbstractDoctrineCrudHandler implements CrudHandlerInterface
         $bulkActions            = $root['bulk_actions']    ?? null;
         $toolbarButtons         = $root['toolbar_buttons'] ?? null;
         $appendDefaultRowAction = isset($root['append_default_actions']) ? (bool) $root['append_default_actions'] : false;
+        $liveTable              = isset($root['live_table']) ? (bool) $root['live_table'] : null;
 
         $normalize = function (mixed $list, bool $isBulk = false): array {
             if (!\is_array($list)) {
@@ -206,6 +207,34 @@ abstract class AbstractDoctrineCrudHandler implements CrudHandlerInterface
                     'params'   => isset($entry['params'])   && \is_array($entry['params']) ? $entry['params'] : [],
                     'if'       => isset($entry['if'])       && (\is_string($entry['if']) || \is_bool($entry['if'])) ? $entry['if'] : null,
                 ];
+
+                if (array_key_exists('turbo', $entry)) {
+                    $t = $entry['turbo'];
+                    $turbo = [];
+
+                    if ($t === false) {
+                        $turbo['enabled'] = false;
+                    } elseif ($t === true) {
+                        $turbo['enabled'] = true;
+                    } elseif (\is_array($t)) {
+                        if (array_key_exists('enabled', $t)) {
+                            $turbo['enabled'] = (bool) $t['enabled'];
+                        }
+                        if (isset($t['frame']) && \is_string($t['frame']) && $t['frame'] !== '') {
+                            $turbo['frame'] = $t['frame'];
+                        }
+                        if (isset($t['confirm']) && \is_string($t['confirm']) && $t['confirm'] !== '') {
+                            $turbo['confirm'] = $t['confirm'];
+                        }
+                    }
+
+                    if ($turbo !== []) {
+                        $item['turbo'] = $turbo;
+                        if (isset($turbo['confirm']) && \is_string($turbo['confirm'])) {
+                            $item['confirm'] = $turbo['confirm'];
+                        }
+                    }
+                }
 
                 // voters: string or list of strings
                 if (isset($entry['voters'])) {
@@ -243,7 +272,17 @@ abstract class AbstractDoctrineCrudHandler implements CrudHandlerInterface
             'bulk_actions'           => $normalize($bulkActions, true),
             'toolbar_buttons'        => $normalize($toolbarButtons, false),
             'append_default_actions' => $appendDefaultRowAction,
+            'live_table'             => $liveTable,
         ];
+    }
+    public function getLiveTableEnabled(): ?bool
+    {
+        if ($this->uiConfig === null) {
+            $this->loadIndexFieldsFromConfig();
+        }
+
+        $val = $this->uiConfig['live_table'] ?? null;
+        return $val === null ? null : (bool) $val;
     }
 
     /**

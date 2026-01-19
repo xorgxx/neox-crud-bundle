@@ -6,7 +6,13 @@ Ce projet suit les principes de versionnement sémantique (SemVer).
 ---
 
 ## [Unreleased]
-### Nothing yet
+### Added
+- feat(crud): Opt-in live index table powered by Pagerfanta + Symfony UX LiveComponent. Disabled by default and selectable per-handler via YAML key `live_table` (flat or under `neox_crud:`). The classic index template remains the default.
+- feat(crud): `index_fields` can now carry query capabilities (opt-in, BC-safe): `sortable`, `searchable`, `filter`, `join`, `query_path`. When `index_fields` is a simple list of strings, no sort/search/filter is enabled by default.
+- feat(crud): Server-side sorting/pagination/search/filters for the live index table derived from `index_fields` (single source of truth). Dot-notation fields are supported via automatic Doctrine joins.
+- feat(crud): Add opt-in `turbo` option on `toolbar_buttons`, `actions`, and `bulk_actions` entries to generate `data-turbo`, `data-turbo-frame`, and `data-turbo-confirm` attributes (with `turbo.confirm` overriding `confirm`).
+- feat(crud): Live table now supports multi-selection (checkboxes) and rendering/executing configured `bulk_actions` against the current selection.
+- tests: Add unit tests for live table index fields normalization and Doctrine join resolver.
 
 ## [1.2.1] — 2025-12-11
 ### Added

@@ -34,6 +34,11 @@ neox_crud:
   translations:
     field_keys: ['label', 'placeholder']
     patterns: {}
+
+  live_table:
+    enabled: false
+    default_per_page: 25
+    max_per_page: 100
 ```
 
 Options details
@@ -99,7 +104,24 @@ Options details
 - Default: {}
 - Effect: Text templates used by the Maker to prefill some keys. Patterns can reference `%field_label%` (or other future variables) to interpolate a readable value.
 
-5) Per-handler YAML overrides (index_fields)
+5) live_table
+- Type: object
+- Description: Global options for the interactive index table (Pagerfanta + Symfony UX LiveComponent). Opt-in feature.
+
+5.1) live_table.enabled
+- Type: bool
+- Default: false
+- Effect: Enables the live index by default. Can be overridden per handler via the `live_table` YAML key.
+
+5.2) live_table.default_per_page
+- Type: int
+- Default: 25
+
+5.3) live_table.max_per_page
+- Type: int
+- Default: 100
+
+6) Per-handler YAML overrides (index_fields)
 - Type: file-based (optional)
 - Default: not used
 - Effect: Define which fields appear in the index view table for a given handler without overriding PHP code.
@@ -109,7 +131,7 @@ Location (first match wins), relative to your concrete handler class file (e.g. 
 - `src/Crud/Handler/ProductCrudHandler/ProductCrudHandler.yaml`
  - `src/Crud/Handler/ProductCrudHandler/config/crud.yaml`
 
-5.1) Per-handler UI actions (opt-in)
+6.1) Per-handler UI actions (opt-in)
 - Type: file-based (optional)
 - Default: not used
 - Effect: Configure action buttons for the index view without PHP changes. Fully backward compatible. If absent, templates render their defaults.
@@ -132,6 +154,10 @@ Action/button options:
 - `voters` (string or list<string>; visibility/authorization handled by your Voter if you use one)
 - `if` (string|bool; simple condition evaluated against `entity.*` or `context.*`)
 - `selection_required` (bool; bulk only, default true)
+- `turbo` (bool|map; optional):
+  - `false` or `{ enabled: false }` → adds `data-turbo="false"`
+  - `{ frame: "_top"|"crud_table"|"<frame_id>" }` → adds `data-turbo-frame="..."`
+  - `{ confirm: "..." }` → adds `data-turbo-confirm="..."` and overrides `confirm`
 
 Dynamic params and conditions
 - You can reference entity and context values in `params` and `if` using:
@@ -268,6 +294,60 @@ Currently recognized options (non‑exhaustive):
 - `type`: string. For example `image` to suggest rendering an `<img>` using the field value as URL/path.
 - `class`: string. Additional CSS class to apply (e.g. on an image tag).
 - `voters` or `voter`: string|string[] of security attributes; the template/controller can leverage this to hide a field when not granted.
+
+Query capabilities (opt-in, live table)
+--------------------------------------
+
+In addition to rendering options, `index_fields` may also carry query capabilities for the live table (no duplicated config):
+- `sortable`: bool (default: false)
+- `searchable`: bool (default: false)
+- `filter`: map (optional), e.g. `{ type: boolean }`, `{ type: choice, choices: { Yes: '1', No: '0' } }`, `{ type: date }`
+- `join`: `left|inner` (optional, default: left) for dot-notation fields
+- `query_path`: string (optional) when UI name differs from the Doctrine path
+
+Handler override (live activation)
+---------------------------------
+
+You can enable/disable the live index per handler using the boolean key `live_table`, either flat or under `neox_crud:`:
+
+```yaml
+live_table: true
+
+# or
+neox_crud:
+  live_table: true
+```
+
+Multi-selection + bulk actions (live table)
+------------------------------------------
+
+When the live table is enabled and `bulk_actions` are configured in the handler YAML, the table renders:
+- one checkbox per row,
+- a selection counter,
+- a “Select page” button (select current page),
+- a “Clear” button (clear selection).
+
+Bulk actions execution
+
+- Bulk actions come only from `bulk_actions` (no raw user input).
+- Non‑GET actions are rendered as CSRF-protected POST forms and send the current selection under the `ids` field.
+- Payload format: `ids` contains a JSON list of selected IDs.
+- For the custom route (`neox_crud_admin_crud_custom`), the CSRF token id is `custom_<resource>_0_<action>`.
+
+Handler-side example (reading `ids`)
+
+In your `supportsAction()` / `handleAction()`, you can handle a `bulk_delete` action like:
+
+```php
+$idsRaw = $request->request->get('ids');
+$ids = is_string($idsRaw) ? json_decode($idsRaw, true) : $idsRaw;
+if (!is_array($ids)) {
+    $ids = [];
+}
+foreach ($ids as $id) {
+    // find + re-check permissions + update/delete
+}
+```
 
 Note: The template contract is unchanged. Existing templates can continue to read `fields` (names only). If you adopt attributes, also read `field_options` from the controller context: an associative array keyed by field name → options.
 

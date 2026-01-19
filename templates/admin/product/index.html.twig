@@ -10,6 +10,10 @@
     {% if toolbarButtons is defined and toolbarButtons is not empty %}
       {% for btn in toolbarButtons %}
         {% set isGet = (btn.method|default('GET')|upper) == 'GET' %}
+        {% set turbo = btn.turbo|default({}) %}
+        {% set turboEnabled = turbo.enabled is defined ? turbo.enabled : null %}
+        {% set turboFrame = turbo.frame|default(null) %}
+        {% set turboConfirm = turbo.confirm|default(btn.confirm|default(null)) %}
         {% if btn.route is defined and btn.route %}
           {% set params = (btn.params|default({})) %}
           {% set url = path(btn.route, params|merge({ resource: resource })) %}
@@ -19,7 +23,14 @@
           {% set url = '#' %}
         {% endif %}
         {% if isGet %}
-          <a href="{{ url }}" class="btn btn-sm {{ btn.class|default('btn-outline-secondary') }}" title="{{ btn.label }}">
+          <a
+            href="{{ url }}"
+            class="btn btn-sm {{ btn.class|default('btn-outline-secondary') }}"
+            title="{{ btn.label }}"
+            {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
+            {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
+            {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+          >
             {% if btn.icon %}<i class="{{ btn.icon }}"></i>{% endif %} {{ btn.label }}
           </a>
         {% endif %}
@@ -45,6 +56,10 @@
           {% if actions is not empty %}
             {% for a in actions %}
               {% set isGet = (a.method|default('GET')|upper) == 'GET' %}
+              {% set turbo = a.turbo|default({}) %}
+              {% set turboEnabled = turbo.enabled is defined ? turbo.enabled : null %}
+              {% set turboFrame = turbo.frame|default(null) %}
+              {% set turboConfirm = turbo.confirm|default(a.confirm|default(null)) %}
               {% if a.route is defined and a.route %}
                 {% set params = (a.params|default({})) %}
                 {% set url = path(a.route, params|merge({ resource: resource })) %}
@@ -55,18 +70,41 @@
               {% endif %}
 
               {% if isGet %}
-                <a href="{{ url }}" class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}" title="{{ a.label }}">
+                <a
+                  href="{{ url }}"
+                  class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}"
+                  title="{{ a.label }}"
+                  {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
+                  {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
+                  {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+                >
                   {% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}
                 </a>
               {% else %}
                 {# Securely handle known routes with CSRF #}
                 {% if a.route == 'neox_crud_admin_crud_delete' %}
-                  <form method="post" action="{{ url }}" style="display:inline-block" onsubmit="return {{ a.confirm ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};">
+                  <form
+                    method="post"
+                    action="{{ url }}"
+                    style="display:inline-block"
+                    onsubmit="return {{ a.confirm ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};"
+                    {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
+                    {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
+                    {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+                  >
                     <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ item.id) }}">
                     <button class="btn btn-sm {{ a.class|default('btn-danger') }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
                   </form>
                 {% elseif a.route == 'neox_crud_admin_crud_custom' and a.params.action is defined %}
-                  <form method="post" action="{{ url }}" style="display:inline-block" onsubmit="return {{ a.confirm ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};">
+                  <form
+                    method="post"
+                    action="{{ url }}"
+                    style="display:inline-block"
+                    onsubmit="return {{ a.confirm ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};"
+                    {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
+                    {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
+                    {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+                  >
                     <input type="hidden" name="_token" value="{{ csrf_token('custom_' ~ resource ~ '_' ~ item.id ~ '_' ~ a.params.action) }}">
                     <button class="btn btn-sm {{ a.class|default('btn-secondary') }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
                   </form>
