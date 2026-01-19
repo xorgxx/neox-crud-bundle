@@ -12,7 +12,15 @@ Ce projet suit les principes de versionnement sémantique (SemVer).
 - feat(crud): Server-side sorting/pagination/search/filters for the live index table derived from `index_fields` (single source of truth). Dot-notation fields are supported via automatic Doctrine joins.
 - feat(crud): Add opt-in `turbo` option on `toolbar_buttons`, `actions`, and `bulk_actions` entries to generate `data-turbo`, `data-turbo-frame`, and `data-turbo-confirm` attributes (with `turbo.confirm` overriding `confirm`).
 - feat(crud): Live table now supports multi-selection (checkboxes) and rendering/executing configured `bulk_actions` against the current selection.
+- feat(crud): Live table pagination can be configured globally via `neox_crud.live_table.default_per_page` / `max_per_page` and per-handler via YAML.
+- feat(crud): Add live table pagination display option `neox_crud.live_table.pagination_position` (`top` | `bottom` | `all`), overridable per handler.
+- feat(crud): Per-handler YAML now supports unified format `live_table: { enabled, default_per_page, max_per_page, pagination_position }` (BC-safe with legacy `live_table: true`).
+- feat(crud): Live table header can display filtered/total counts (e.g. `12 / 120`) next to the search input.
 - tests: Add unit tests for live table index fields normalization and Doctrine join resolver.
+
+### Fixed
+- fix(crud): Live table now properly applies configured `default_per_page` / `max_per_page` (previously could fall back to a hardcoded value).
+- fix(crud): Default appended delete action now includes a confirmation message.
 
 ## [1.2.1] — 2025-12-11
 ### Added

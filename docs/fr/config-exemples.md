@@ -64,5 +64,27 @@ neox_crud:
       help: 'Aide concernant %field_label%'
 ```
 
+7) Activer la LiveTable (pagination et position)
+
+Configuration globale (config/packages/neox_crud.yaml) :
+```yaml
+neox_crud:
+  live_table:
+    enabled: true
+    default_per_page: 10
+    max_per_page: 50
+    pagination_position: all # top | bottom | all
+```
+
+Surcharge par handler (YAML du handler, forme unifiée) :
+```yaml
+neox_crud:
+  live_table:
+    enabled: true
+    default_per_page: 4
+    max_per_page: 4
+    pagination_position: top
+```
+
 Voir aussi
 - docs/fr/config.md — Référence complète de configuration

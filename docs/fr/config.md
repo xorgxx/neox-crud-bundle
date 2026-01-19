@@ -46,6 +46,7 @@ neox_crud:
 
   live_table:
     enabled: false
+    pagination_position: bottom # top | bottom | all
     default_per_page: 25
     max_per_page: 100
 ```
@@ -129,6 +130,14 @@ Détails des options
 5.3) live_table.max_per_page
 - Type: int
 - Défaut: 100
+
+5.4) live_table.pagination_position
+- Type: enum('top'|'bottom'|'all')
+- Défaut: bottom
+- Effet: Contrôle l’affichage de la pagination dans la table live.
+  - `top` : pagination uniquement au-dessus du tableau
+  - `bottom` : pagination uniquement en dessous du tableau
+  - `all` : pagination en haut et en bas
 
 6) Surcharges YAML par handler (index_fields)
 - Type: basé sur fichier (optionnel)
@@ -250,6 +259,24 @@ Comportement:
 Rétrocompatibilité
 - Si ces clés sont absentes, rien ne change dans les templates ni le comportement.
 - Les API publiques et noms de routes restent inchangés.
+
+Options LiveTable par handler (opt‑in)
+-------------------------------------
+
+En plus de `live_table` (activation), vous pouvez surcharger la pagination par handler.
+
+Forme unifiée recommandée (imbriquée sous `neox_crud:`) :
+```yaml
+neox_crud:
+  live_table:
+    enabled: true
+    default_per_page: 4
+    max_per_page: 4
+    pagination_position: all
+```
+
+Notes :
+- Le bundle reste compatible avec l’ancien format `live_table: true` (clé booléenne), mais la forme unifiée ci-dessus est à privilégier pour la lisibilité.
 
 Clés acceptées :
 ```yaml

@@ -37,6 +37,7 @@ neox_crud:
 
   live_table:
     enabled: false
+    pagination_position: bottom # top | bottom | all
     default_per_page: 25
     max_per_page: 100
 ```
@@ -120,6 +121,14 @@ Options details
 5.3) live_table.max_per_page
 - Type: int
 - Default: 100
+
+5.4) live_table.pagination_position
+- Type: enum('top'|'bottom'|'all')
+- Default: bottom
+- Effect: Controls where the pagination is rendered in the live table.
+  - `top`: pagination above the table only
+  - `bottom`: pagination below the table only
+  - `all`: pagination both above and below
 
 6) Per-handler YAML overrides (index_fields)
 - Type: file-based (optional)
@@ -241,6 +250,24 @@ Behavior:
 Backward compatibility
 - If those keys are absent, nothing changes in runtime templates or behavior.
 - Public APIs and route names remain unchanged.
+
+Per-handler LiveTable options (opt-in)
+------------------------------------
+
+In addition to enabling the live table, you can override pagination per handler.
+
+Recommended unified form (nested under `neox_crud:`):
+```yaml
+neox_crud:
+  live_table:
+    enabled: true
+    default_per_page: 4
+    max_per_page: 4
+    pagination_position: all
+```
+
+Notes:
+- The bundle remains compatible with the legacy boolean `live_table: true` key, but the unified form above is recommended for readability.
 
 Accepted keys:
 ```yaml
