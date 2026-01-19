@@ -3,6 +3,10 @@
 
 [...]
 
+Voir aussi
+- docs/fr/controller.md — Contrôleur CRUD générique (routes, flux, LiveTable vs classique)
+- docs/fr/config.md — Référence de configuration (dont LiveTable)
+
 ## 6. Utilisation avancée dans vos propres controllers
 
 ### Récupérer un handler via la Factory
@@ -32,6 +36,10 @@ if ($handler->handleForm($request, $form)) {
 }
 ```
 
+Note
+- Cette approche est indépendante du `GenericCrudController` : tu réutilises la même logique CRUD (via le handler) dans tes propres endpoints.
+- Le `GenericCrudController` est surtout utile pour exposer rapidement toutes les routes CRUD standards sans écrire de contrôleur.
+
 ## 7. Hooks CRUD
 
 Les hooks permettent d'injecter de la logique métier simple avant/après les opérations.
@@ -55,7 +63,7 @@ public function supportsAction(string $action, string $method): bool
     return $action === 'publish';
 }
 
-public function handleAction(string $action, int $id, Request $request, AbstractController $controller): Response
+public function handleAction(string $action, int|string $id, Request $request, AbstractController $controller): Response
 {
     $entity = $this->find($id);
     $entity->setPublished(true);
@@ -121,3 +129,14 @@ product.field.name.help
 - `/admin/{resource}/{id}/edit`  
 - `/admin/{resource}/{id}/delete`  
 - `/admin/{resource}/{id}/{action}` → actions spéciales
+
+Routage (rappel)
+
+Pour activer ces routes, importe les routes du bundle :
+```yaml
+# config/routes/neox_crud.yaml
+neox_crud:
+  resource: '@NeoxCrudBundle/Controller/'
+  type: attribute
+  prefix: /
+```

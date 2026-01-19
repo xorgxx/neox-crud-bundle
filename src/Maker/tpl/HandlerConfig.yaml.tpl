@@ -44,6 +44,11 @@
 #    - actions: per-row action buttons in the index list
 #    - bulk_actions: actions for the current selection (if your UI implements it)
 #    - toolbar_buttons: buttons shown near the "New" button in the index view
+#  - LiveTable options (opt‑in, BC safe) can also be configured here:
+#    - live_table.enabled: enable/disable live index for this resource
+#    - live_table.default_per_page: default page size
+#    - live_table.max_per_page: maximum allowed page size
+#    - live_table.pagination_position: top|bottom|all
 #  - Keep comments or remove them; YAML ignores commented lines.
 #
 <?php
@@ -71,6 +76,11 @@ if (is_array($available_fields) && $available_fields !== []) {
 
 # Example (nested under neox_crud):
 # neox_crud:
+#   live_table:
+#     enabled: true
+#     default_per_page: 4
+#     max_per_page: 4
+#     pagination_position: all # top | bottom | all
 #   index_fields: ['id', 'name', 'createdAt']
 #   append_default_actions: true
 #   # Per-row actions (index table column)

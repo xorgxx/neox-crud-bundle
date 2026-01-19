@@ -397,7 +397,7 @@
                     method="post"
                     action="{{ url }}"
                     style="display:inline-flex; margin:0; align-items:center"
-                    onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class="&quot;spinner-border" spinner-border-sm me-1&quot; role="&quot;status&quot;" aria-hidden="&quot;true&quot;"></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
+                    onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
                     {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
                     {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
                     {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
@@ -410,7 +410,7 @@
                     method="post"
                     action="{{ url }}"
                     style="display:inline-flex; margin:0; align-items:center"
-                    onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class="&quot;spinner-border" spinner-border-sm me-1&quot; role="&quot;status&quot;" aria-hidden="&quot;true&quot;"></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
+                    onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
                     {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
                     {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
                     {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}

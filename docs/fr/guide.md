@@ -6,6 +6,9 @@ NeoxCrudBundle te fournit une **colonne vertébrale CRUD** pour tous tes back-of
 - des points d’extension clairs (hooks, events, actions custom)
 - une intégration facile dans ton écosystème Symfony.
 
+Voir aussi
+- docs/fr/controller.md — Contrôleur CRUD générique (routes, flux, LiveTable vs classique)
+
 
 ---
 

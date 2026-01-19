@@ -8,6 +8,7 @@ See also
 - [docs/en/config-examples.md — Practical configuration examples](./config-examples.md)
 - [docs/en/cli.md — CLI / Maker reference](./cli.md)
 - [docs/en/uuid.md — Identifier support (UUID/ULID)](./uuid.md)
+- [docs/en/controller.md — Generic CRUD controller (routes, flow, LiveTable vs classic)](./controller.md)
 - Starter kit: [doc_en.md](../starter_kit/doc_en.md) and examples under `starter_kit/`
 
 ---

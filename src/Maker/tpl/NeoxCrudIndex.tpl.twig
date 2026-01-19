@@ -80,7 +80,8 @@
                     <td>
                         {# Optional per-row actions from handler YAML #}
                         {% set __id = attribute(item, 'id') %}
-                        {% set actions = (rowActionsById is defined and rowActionsById[__id] is defined) ? rowActionsById[__id] : [] %}
+                        {% set __idKey = __id ~ '' %}
+                        {% set actions = (rowActionsById is defined and rowActionsById[__idKey] is defined) ? rowActionsById[__idKey] : [] %}
                         {% if actions is not empty %}
                             {% for a in actions %}
                                 {% set isGet = (a.method|default('GET')|upper) == 'GET' %}
@@ -101,12 +102,12 @@
                                     {# Secure handling for known bundle routes with CSRF #}
                                     {% if a.route == 'neox_crud_admin_crud_delete' %}
                                         <form method="post" action="{{ url }}" style="display:inline-block" onsubmit="return {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ __id) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ __idKey) }}">
                                             <button class="btn btn-sm {{ a.class|default('btn-danger') }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
                                         </form>
                                     {% elseif a.route == 'neox_crud_admin_crud_custom' and a.params.action is defined %}
                                         <form method="post" action="{{ url }}" style="display:inline-block" onsubmit="return {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('custom_' ~ resource ~ '_' ~ __id ~ '_' ~ a.params.action) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('custom_' ~ resource ~ '_' ~ __idKey ~ '_' ~ a.params.action) }}">
                                             <button class="btn btn-sm {{ a.class|default('btn-secondary') }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
                                         </form>
                                     {% else %}
@@ -126,7 +127,7 @@
                                   action="{{ path('neox_crud_admin_crud_delete', { resource: resource, id: __id }) }}"
                                   style="display:inline-block"
                                   onsubmit="return confirm('Confirmer la suppression ?');">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ __id) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ __idKey) }}">
                                 <button class="btn btn-sm btn-danger">
                                     {% set __del_key = resource ~ '.action.delete' %}
                                     {% set __del_val = __del_key|trans({}, resource) %}

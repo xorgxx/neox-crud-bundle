@@ -17,6 +17,7 @@ Features clés:
 Ressources Docs:
 - FR: docs/fr/guide.md, docs/fr/config.md, docs/fr/cli.md, docs/fr/uuid.md
 - EN: docs/en/guide.md, docs/en/config.md, docs/en/cli.md, docs/en/uuid.md
+- Controller: docs/fr/controller.md (FR) / docs/en/controller.md (EN)
 
 Sommaire rapide:
 - Installation (FR/EN)
@@ -122,6 +123,7 @@ Plus d’infos (FR)
 - [Exemples de config: ](docs/fr/config-exemples.md)
 - [CLI détaillée: ](docs/fr/cli.md)
 - [UUID/ULID: ](docs/fr/uuid.md)
+- [Contrôleur CRUD générique: ](docs/fr/controller.md)
 
 ---
 
@@ -218,6 +220,7 @@ More (EN)
 - [Config examples:](docs/en/config-examples.md)
 - [CLI reference: ](docs/en/cli.md)
 - [UUID/ULID: ](docs/en/uuid.md)
+- [Generic CRUD controller: ](docs/en/controller.md)
 
 ---
 

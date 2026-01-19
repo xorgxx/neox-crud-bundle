@@ -82,6 +82,15 @@ class <?= $class_name ?> extends AbstractDoctrineCrudHandler
      *   index_fields: ['id', 'name', 'createdAt']
      *   neox_crud:
      *     index_fields: ['id', 'name', 'createdAt']
+     *
+     * LiveTable (optional): you can also configure LiveTable options in the same YAML file.
+     * Recommended unified form:
+     *   neox_crud:
+     *     live_table:
+     *       enabled: true
+     *       default_per_page: 4
+     *       max_per_page: 4
+     *       pagination_position: all # top | bottom | all
      * If such a file exists, it will override the default without code change.
      */
     // public function getIndexFields(): array
@@ -159,7 +168,7 @@ class <?= $class_name ?> extends AbstractDoctrineCrudHandler
     // {
     //     return ['neox_crud_admin_crud_edit', [
     //         'resource' => $this->getName(),
-    //         'id' => $this->getId($entity),
+    //         'id' => $this->getEntityIdentifier($entity),
     //     ]];
     // }
     //
@@ -167,7 +176,7 @@ class <?= $class_name ?> extends AbstractDoctrineCrudHandler
     // {
     //     return ['neox_crud_admin_crud_edit', [
     //         'resource' => $this->getName(),
-    //         'id' => $this->getId($entity),
+    //         'id' => $this->getEntityIdentifier($entity),
     //     ]];
     // }
     //
@@ -198,7 +207,10 @@ class <?= $class_name ?> extends AbstractDoctrineCrudHandler
     ): Response {
         // Example implementation for a "preview" action:
         // if ($action === 'preview' && $request->isMethod('GET')) {
-        //     $entity = $this->find($id) ?? $this->notFound();
+        //     $entity = $this->find($id);
+        //     if (!$entity) {
+        //         throw new NotFoundHttpException('Entity not found.');
+        //     }
         //     return $controller->render($this->getTemplatePrefix().'/preview.html.twig', [
         //         'entity' => $entity,
         //         'resource' => $this->getName(),
