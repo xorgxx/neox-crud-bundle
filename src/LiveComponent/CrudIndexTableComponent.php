@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -131,7 +132,7 @@ final class CrudIndexTableComponent
         $handler = $this->factory->get($this->resource);
         $request = $this->requestStack->getCurrentRequest();
 
-        if (!$request || !method_exists($handler, 'getRowActionsFor')) {
+        if (!method_exists($handler, 'getRowActionsFor')) {
             return [];
         }
 
@@ -148,10 +149,14 @@ final class CrudIndexTableComponent
                 $id = $it->id;
             }
 
-            $out[$id ?? spl_object_id($it)] = $handler->getRowActionsFor($it, [
-                'request'  => $request,
+            $key = $id !== null ? (string) $id : (string) spl_object_id($it);
+            $context = [
                 'resource' => $this->resource,
-            ]);
+            ];
+            if ($request) {
+                $context['request'] = $request;
+            }
+            $out[$key] = $handler->getRowActionsFor($it, $context);
         }
 
         return $out;
@@ -196,7 +201,7 @@ final class CrudIndexTableComponent
     }
 
     #[LiveAction]
-    public function sortBy(string $field): void
+    public function sortBy(#[LiveArg] string $field): void
     {
         $handler = $this->factory->get($this->resource);
 
@@ -219,7 +224,7 @@ final class CrudIndexTableComponent
     }
 
     #[LiveAction]
-    public function goToPage(int $page): void
+    public function goToPage(#[LiveArg] int $page): void
     {
         $this->page = max(1, $page);
     }
