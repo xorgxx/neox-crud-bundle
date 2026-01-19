@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Neox\NeoxCrudBundle\LiveComponent;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Neox\NeoxCrudBundle\Crud\CrudHandlerFactory;
+use Neox\NeoxCrudBundle\Crud\CrudHandlerInterface;
 use Neox\NeoxCrudBundle\LiveTable\DoctrineCrudListQueryBuilder;
 use Neox\NeoxCrudBundle\LiveTable\IndexFieldsNormalizer;
 use Pagerfanta\Pagerfanta;
@@ -47,11 +49,50 @@ final class CrudIndexTableComponent
 
     public function __construct(
         private CrudHandlerFactory $factory,
+        private EntityManagerInterface $em,
         private DoctrineCrudListQueryBuilder $queryBuilder,
         private IndexFieldsNormalizer $fieldsNormalizer,
         private ParameterBagInterface $params,
         private RequestStack $requestStack,
     ) {
+    }
+
+    private function getCount(CrudHandlerInterface $handler, array $cols, ?string $search, array $filters): int
+    {
+        $qb = $this->queryBuilder->createForIndex($handler, $cols, null, 'asc', $search, $filters);
+
+        $meta = $this->em->getClassMetadata($handler->getEntityClass());
+        $idFields = $meta->getIdentifierFieldNames();
+        $idField = $idFields[0] ?? 'id';
+
+        $qb->resetDQLPart('orderBy');
+        $qb->select('COUNT(DISTINCT e.' . $idField . ')');
+        $qb->setFirstResult(null);
+        $qb->setMaxResults(null);
+
+        try {
+            return (int) $qb->getQuery()->getSingleScalarResult();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    public function getTotalCount(): int
+    {
+        $handler = $this->factory->get($this->resource);
+        $cols = $this->getColumns();
+
+        return $this->getCount($handler, $cols, null, []);
+    }
+
+    public function getFilteredCount(): int
+    {
+        $handler = $this->factory->get($this->resource);
+        $cols = $this->getColumns();
+        $filters = \is_array($this->filters) ? $this->filters : [];
+        $search = \is_string($this->search) ? $this->search : '';
+
+        return $this->getCount($handler, $cols, $search, $filters);
     }
 
     public function getColumns(): array

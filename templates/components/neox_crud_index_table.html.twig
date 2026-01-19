@@ -21,27 +21,37 @@
       <div class="d-flex gap-2 align-items-center">
         <div style="max-width: 280px; width: 100%;">
           {% if hasSearch %}
-            <div class="input-group input-group-sm w-100">
-              <span class="input-group-text">
-                <span data-loading="model(search)|hide">🔍</span>
-                <span data-loading="model(search)|delay(150)|show" style="display:none" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-              </span>
-              <input
-                type="search"
-                class="form-control"
-                placeholder="Search..."
-                data-model="on(input)|debounce(1200)|search"
-              >
-              <button
-                type="button"
-                class="btn btn-outline-secondary"
-                title="Clear"
-                data-action="live#action"
-                data-live-action-param="clearSearch"
-                {% if this.search is empty %}disabled{% endif %}
-              >
-                ✕
-              </button>
+            <div class="d-flex align-items-center gap-2">
+              <div class="input-group input-group-sm w-100">
+                <span class="input-group-text">
+                  <span data-loading="model(search)|hide">🔍</span>
+                  <span data-loading="model(search)|delay(150)|show" style="display:none" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                </span>
+                <input
+                  type="search"
+                  class="form-control"
+                  placeholder="Search..."
+                  data-model="on(input)|debounce(1200)|search"
+                >
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  title="Clear"
+                  data-action="live#action"
+                  data-live-action-param="clearSearch"
+                  {% if this.search is empty %}disabled{% endif %}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {% set filtered = this.filteredCount %}
+              {% set total = this.totalCount %}
+              {% if total > 0 and filtered != total %}
+                <small class="text-muted text-nowrap">{{ filtered }} / {{ total }}</small>
+              {% elseif total > 0 %}
+                <small class="text-muted text-nowrap">{{ total }}</small>
+              {% endif %}
             </div>
           {% else %}
             <small class="text-muted">No search set</small>
@@ -387,7 +397,7 @@
                     method="post"
                     action="{{ url }}"
                     style="display:inline-flex; margin:0; align-items:center"
-                    onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
+                    onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class="&quot;spinner-border" spinner-border-sm me-1&quot; role="&quot;status&quot;" aria-hidden="&quot;true&quot;"></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
                     {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
                     {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
                     {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
@@ -400,7 +410,7 @@
                     method="post"
                     action="{{ url }}"
                     style="display:inline-flex; margin:0; align-items:center"
-                    onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
+                    onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class="&quot;spinner-border" spinner-border-sm me-1&quot; role="&quot;status&quot;" aria-hidden="&quot;true&quot;"></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
                     {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
                     {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
                     {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
