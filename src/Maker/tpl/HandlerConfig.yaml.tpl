@@ -72,6 +72,7 @@ if (is_array($available_fields) && $available_fields !== []) {
 # Example (nested under neox_crud):
 # neox_crud:
 #   index_fields: ['id', 'name', 'createdAt']
+#   append_default_actions: true
 #   # Per-row actions (index table column)
 #   actions:
 #     - name: edit
