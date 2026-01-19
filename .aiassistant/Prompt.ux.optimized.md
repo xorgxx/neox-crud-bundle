@@ -99,7 +99,7 @@ Config YAML → ColumnNormalizer → LiveComponent → Twig → Stimulus → Use
 - Pas d'i18n pour les formulaires (laissé au développeur)
 
 **10. Export avancé**
-- Export CSV/Excel/JSON avec filtres
+- Export CSV/JSON avec filtres
 - Support grosses volumétries (streaming)
 - Colonnes sélectionnables
 - Templates d'export personnalisables
@@ -164,82 +164,9 @@ neox_crud:
       flash_integration: true  # intégration avec flash messages
       turbo_integration: true  # support Turbo frames
       template: 'neox_wrap/crud_notification.html.twig'
-      
-      # Types de notifications spécifiques CRUD
-      types:
-        crud_success:
-          icon: 'bi bi-check-circle-fill'
-          class: 'success'
-          sound: 'success.mp3'  # optionnel
-          auto_hide: 3000
-        
-        crud_error:
-          icon: 'bi bi-exclamation-triangle-fill'
-          class: 'danger'
-          sound: 'error.mp3'
-          auto_hide: 0  # persistant
-        
-        crud_warning:
-          icon: 'bi bi-exclamation-triangle-fill'
-          class: 'warning'
-          auto_hide: 4000
-        
-        crud_info:
-          icon: 'bi bi-info-circle-fill'
-          class: 'info'
-          auto_hide: 3000
-    
-    # Options Symfony Notifier (fallback)
-    symfony_notifier:
-      channel: 'browser'  # browser|email|sms|slack
-      flash: true         # Utiliser aussi les flash messages
-    
-    # Options Scheb/2FA (fallback)
-    scheb_2fa:
-      template: 'security/2fa_notifications.html.twig'
-      flash_integration: true
-    
-    # Fallback Bootstrap 5 (dernier recours)
-    bootstrap:
-      modal: true
-      toast: true
-      auto_hide: 5000  # ms
-      position: 'top-right'  # top-right|top-left|bottom-right|bottom-left
+
 ```
 
-### Service configuration pour notifications
-```yaml
-# config/services.yaml
-services:
-    # Manager de notifications avec délégation à neoxWrap
-    Neox\NeoxCrudBundle\Service\NotificationManager:
-        arguments:
-            $neoxWrapNotifier: '@?Neox\WrapNotificatorBundle\Service\NotifierInterface'
-            $symfonyNotifier: '@?Symfony\Component\Notifier\NotifierInterface'
-            $flashBag: '@?Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface'
-            $config: '%neox_crud%'
-        tags:
-            - { name: 'monolog.logger', channel: 'neox_crud' }
-
-    # Intégration neoxWrapNotificatorBundle (prioritaire)
-    Neox\WrapNotificatorBundle\Service\NotifierInterface:
-        alias: 'neox_wrap.notifier'
-
-    # Intégration Symfony Notifier (fallback)
-    Symfony\Component\Notifier\NotifierInterface:
-        alias: 'notifier'
-
-    # Intégration FlashBag
-    Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface:
-        alias: 'session.flash_bag'
-
-    # Twig helper pour les notifications
-    Neox\NeoxCrudBundle\Twig\NotificationExtension:
-        arguments:
-            $notificationManager: '@Neox\NeoxCrudBundle\Service\NotificationManager'
-        tags:
-            - { name: 'twig.extension' }
-```
 
 ### Configuration par ressource avec notifications
 ```yaml

@@ -50,6 +50,7 @@ Fonctionnel attendu :
    - La sélection doit survivre aux refresh LiveComponent (state côté LiveComponent).
 
 5) Intégration UI existante (config-first)
+   - Structure header + content + fooder
    - Les barres de menu/boutons restent déclarées via :
       - `toolbar_buttons` (haut de page)
       - `actions` (par ligne)
@@ -90,7 +91,7 @@ Livrables demandés :
    - bulk_actions
 - Un Stimulus controller minimal pour select-all + synchronisation selectedIds (si le bundle fournit JS, sinon documenter l’intégration).
 - Une entrée de configuration (Configuration.php + docs) :
-   - ex `neox_crud.index.live_table.enabled: true`
+   - ex `neox_crud.live_table.enabled: true`
    - options globales (par ex: default_per_page, max_per_page)
 - 1 test minimal :
    - ex: normalisation `index_fields` + options sortable/searchable + application des voters sur colonnes
