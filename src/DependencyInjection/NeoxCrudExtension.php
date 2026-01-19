@@ -53,6 +53,7 @@ class NeoxCrudExtension extends Extension implements PrependExtensionInterface
         $container->setParameter('neox_crud.makers', $config['makers'] ?? null);
 
         $container->setParameter('neox_crud.live_table.enabled', (bool) ($config['live_table']['enabled'] ?? false));
+        $container->setParameter('neox_crud.live_table.pagination_position', (string) ($config['live_table']['pagination_position'] ?? 'bottom'));
         $container->setParameter('neox_crud.live_table.default_per_page', (int) ($config['live_table']['default_per_page'] ?? 25));
         $container->setParameter('neox_crud.live_table.max_per_page', (int) ($config['live_table']['max_per_page'] ?? 100));
 

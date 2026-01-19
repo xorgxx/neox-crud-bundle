@@ -28,7 +28,7 @@ final class CrudIndexTableComponent
     public int $page = 1;
 
     #[LiveProp(writable: true)]
-    public int $perPage = 25;
+    public int $perPage = 0;
 
     #[LiveProp(writable: true)]
     public ?string $sort = null;
@@ -63,6 +63,29 @@ final class CrudIndexTableComponent
         return $this->fieldsNormalizer->normalize($fields, $options);
     }
 
+    public function getPaginationPosition(): string
+    {
+        $handler = $this->factory->get($this->resource);
+
+        $pos = (string) $this->params->get('neox_crud.live_table.pagination_position');
+        if ($pos !== 'top' && $pos !== 'bottom' && $pos !== 'all') {
+            $pos = 'bottom';
+        }
+
+        if (method_exists($handler, 'getLiveTablePaginationPosition')) {
+            $override = $handler->getLiveTablePaginationPosition();
+            if (
+                $override === 'top'
+                || $override === 'bottom'
+                || $override === 'all'
+            ) {
+                $pos = $override;
+            }
+        }
+
+        return $pos;
+    }
+
     public function getPager(): Pagerfanta
     {
         $handler = $this->factory->get($this->resource);
@@ -79,6 +102,31 @@ final class CrudIndexTableComponent
 
         $defaultPerPage = (int) $this->params->get('neox_crud.live_table.default_per_page');
         $maxPerPage = (int) $this->params->get('neox_crud.live_table.max_per_page');
+
+        if (method_exists($handler, 'getLiveTableDefaultPerPage')) {
+            $override = $handler->getLiveTableDefaultPerPage();
+            if (
+                $override !== null
+                && 
+                $override > 0
+            ) {
+                $defaultPerPage = (int) $override;
+            }
+        }
+        if (method_exists($handler, 'getLiveTableMaxPerPage')) {
+            $override = $handler->getLiveTableMaxPerPage();
+            if (
+                $override !== null
+                && 
+                $override > 0
+            ) {
+                $maxPerPage = (int) $override;
+            }
+        }
+
+        if ($maxPerPage > 0 && $defaultPerPage > $maxPerPage) {
+            $defaultPerPage = $maxPerPage;
+        }
 
         if ($this->perPage < 1) {
             $this->perPage = $defaultPerPage;

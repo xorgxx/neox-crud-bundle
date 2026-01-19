@@ -4,6 +4,15 @@
 {% set rowActionsById = this.rowActionsById %}
 {% set bulkActions = this.bulkActions %}
 
+{% set hasSearch = false %}
+{% for col in columns %}
+  {% if col.searchable|default(false) %}
+    {% set hasSearch = true %}
+  {% endif %}
+{% endfor %}
+
+{% set paginationPosition = this.paginationPosition|default('bottom') %}
+
 <div {{ attributes }}>
   <div class="mb-2 fw-semibold">Manager {{ resource|replace({'_':' '})|title }}</div>
 
@@ -11,28 +20,32 @@
     <div class="card-header py-2">
       <div class="d-flex gap-2 align-items-center">
         <div style="max-width: 280px; width: 100%;">
-          <div class="input-group input-group-sm w-100">
-            <span class="input-group-text">
-              <span data-loading="model(search)|hide">🔍</span>
-              <span data-loading="model(search)|delay(150)|show" style="display:none" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            </span>
-            <input
-              type="search"
-              class="form-control"
-              placeholder="Search..."
-              data-model="on(input)|debounce(1200)|search"
-            >
-            <button
-              type="button"
-              class="btn btn-outline-secondary"
-              title="Clear"
-              data-action="live#action"
-              data-live-action-param="clearSearch"
-              {% if this.search is empty %}disabled{% endif %}
-            >
-              ✕
-            </button>
-          </div>
+          {% if hasSearch %}
+            <div class="input-group input-group-sm w-100">
+              <span class="input-group-text">
+                <span data-loading="model(search)|hide">🔍</span>
+                <span data-loading="model(search)|delay(150)|show" style="display:none" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              </span>
+              <input
+                type="search"
+                class="form-control"
+                placeholder="Search..."
+                data-model="on(input)|debounce(1200)|search"
+              >
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                title="Clear"
+                data-action="live#action"
+                data-live-action-param="clearSearch"
+                {% if this.search is empty %}disabled{% endif %}
+              >
+                ✕
+              </button>
+            </div>
+          {% else %}
+            <small class="text-muted">No search set</small>
+          {% endif %}
         </div>
 
         <div class="d-flex gap-2 align-items-center ms-auto">
@@ -108,7 +121,7 @@
       {% set turbo = a.turbo|default({}) %}
       {% set turboEnabled = turbo.enabled is defined ? turbo.enabled : null %}
       {% set turboFrame = turbo.frame|default(null) %}
-      {% set turboConfirm = turbo.confirm|default(a.confirm|default(null)) %}
+      {% set turboConfirm = turbo.confirm is defined ? turbo.confirm : ((a.confirm is defined) ? a.confirm : null) %}
 
       {% if a.route is defined and a.route %}
         {% set params = (a.params|default({})) %}
@@ -135,7 +148,7 @@
           method="post"
           action="{{ url }}"
           style="display:inline-block"
-          onsubmit="if (!( {{ a.confirm ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
+          onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
           {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
           {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
           {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
@@ -217,6 +230,28 @@
         {% endif %}
       {% endfor %}
     </div>
+  </div>
+{% endif %}
+
+{% if pager.nbPages > 1 and (paginationPosition == 'top' or paginationPosition == 'all') %}
+  <div class="d-flex justify-content-end mb-2">
+    <nav>
+      <ul class="pagination mb-0">
+        {% for p in 1..pager.nbPages %}
+          <li class="page-item {{ p == pager.currentPage ? 'active' : '' }}">
+            <button
+              type="button"
+              class="page-link"
+              data-action="live#action"
+              data-live-action-param="goToPage"
+              data-live-page-param="{{ p }}"
+            >
+              {{ p }}
+            </button>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
   </div>
 {% endif %}
 
@@ -325,7 +360,7 @@
               {% set turbo = a.turbo|default({}) %}
               {% set turboEnabled = turbo.enabled is defined ? turbo.enabled : null %}
               {% set turboFrame = turbo.frame|default(null) %}
-              {% set turboConfirm = turbo.confirm|default(a.confirm|default(null)) %}
+              {% set turboConfirm = turbo.confirm is defined ? turbo.confirm : ((a.confirm is defined) ? a.confirm : null) %}
               {% if a.route is defined and a.route %}
                 {% set params = (a.params|default({})) %}
                 {% set url = path(a.route, params|merge({ resource: resource })) %}
@@ -352,7 +387,7 @@
                     method="post"
                     action="{{ url }}"
                     style="display:inline-flex; margin:0; align-items:center"
-                    onsubmit="if (!( {{ a.confirm ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
+                    onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
                     {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
                     {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
                     {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
@@ -365,7 +400,7 @@
                     method="post"
                     action="{{ url }}"
                     style="display:inline-flex; margin:0; align-items:center"
-                    onsubmit="if (!( {{ a.confirm ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
+                    onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
                     {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
                     {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
                     {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
@@ -407,23 +442,27 @@
   </tbody>
 </table>
 
-<nav>
-  <ul class="pagination">
-    {% for p in 1..pager.nbPages %}
-      <li class="page-item {{ p == pager.currentPage ? 'active' : '' }}">
-        <button
-          type="button"
-          class="page-link"
-          data-action="live#action"
-          data-live-action-param="goToPage"
-          data-live-page-param="{{ p }}"
-        >
-          {{ p }}
-        </button>
-      </li>
-    {% endfor %}
-  </ul>
-</nav>
+{% if pager.nbPages > 1 and (paginationPosition == 'bottom' or paginationPosition == 'all') %}
+  <div class="d-flex justify-content-end mt-2">
+    <nav>
+      <ul class="pagination mb-0">
+        {% for p in 1..pager.nbPages %}
+          <li class="page-item {{ p == pager.currentPage ? 'active' : '' }}">
+            <button
+              type="button"
+              class="page-link"
+              data-action="live#action"
+              data-live-action-param="goToPage"
+              data-live-page-param="{{ p }}"
+            >
+              {{ p }}
+            </button>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </div>
+{% endif %}
 
     </div>
     <div class="card-footer py-2">

@@ -174,7 +174,55 @@ abstract class AbstractDoctrineCrudHandler implements CrudHandlerInterface
         $bulkActions            = $root['bulk_actions']    ?? null;
         $toolbarButtons         = $root['toolbar_buttons'] ?? null;
         $appendDefaultRowAction = isset($root['append_default_actions']) ? (bool) $root['append_default_actions'] : false;
-        $liveTable              = isset($root['live_table']) ? (bool) $root['live_table'] : null;
+        $liveTable              = null;
+        $defaultPerPage         = isset($root['default_per_page']) && is_numeric($root['default_per_page']) ? (int) $root['default_per_page'] : null;
+        $maxPerPage             = isset($root['max_per_page']) && is_numeric($root['max_per_page']) ? (int) $root['max_per_page'] : null;
+        $paginationPosition     = isset($root['pagination_position']) &&
+            (
+                $root['pagination_position'] === 'top'
+                || $root['pagination_position'] === 'bottom'
+                || $root['pagination_position'] === 'all'
+            ) ? (string) $root['pagination_position'] : null;
+
+        if (array_key_exists('live_table', $root)) {
+            if (
+                
+                
+                is_array($root['live_table'])
+            ) {
+                $lt = $root['live_table'];
+
+                if (array_key_exists('enabled', $lt)) {
+                    $liveTable = (bool) $lt['enabled'];
+                }
+
+                if (isset($lt['default_per_page']) && is_numeric($lt['default_per_page'])) {
+                    $defaultPerPage = (int) $lt['default_per_page'];
+                }
+                if (isset($lt['max_per_page']) && is_numeric($lt['max_per_page'])) {
+                    $maxPerPage = (int) $lt['max_per_page'];
+                }
+                if (
+                    isset($lt['pagination_position'])
+                    && (
+                        $lt['pagination_position'] === 'top'
+                        || $lt['pagination_position'] === 'bottom'
+                        || $lt['pagination_position'] === 'all'
+                    )
+                ) {
+                    $paginationPosition = (string) $lt['pagination_position'];
+                }
+            } else {
+                $liveTable = isset($root['live_table']) ? (bool) $root['live_table'] : null;
+            }
+        }
+
+        if ($defaultPerPage !== null && $defaultPerPage < 1) {
+            $defaultPerPage = null;
+        }
+        if ($maxPerPage !== null && $maxPerPage < 1) {
+            $maxPerPage = null;
+        }
 
         $normalize = function (mixed $list, bool $isBulk = false): array {
             if (!\is_array($list)) {
@@ -273,6 +321,9 @@ abstract class AbstractDoctrineCrudHandler implements CrudHandlerInterface
             'toolbar_buttons'        => $normalize($toolbarButtons, false),
             'append_default_actions' => $appendDefaultRowAction,
             'live_table'             => $liveTable,
+            'default_per_page'       => $defaultPerPage,
+            'max_per_page'           => $maxPerPage,
+            'pagination_position'    => $paginationPosition,
         ];
     }
     public function getLiveTableEnabled(): ?bool
@@ -283,6 +334,36 @@ abstract class AbstractDoctrineCrudHandler implements CrudHandlerInterface
 
         $val = $this->uiConfig['live_table'] ?? null;
         return $val === null ? null : (bool) $val;
+    }
+
+    public function getLiveTableDefaultPerPage(): ?int
+    {
+        if ($this->uiConfig === null) {
+            $this->loadIndexFieldsFromConfig();
+        }
+
+        $val = $this->uiConfig['default_per_page'] ?? null;
+        return $val === null ? null : (int) $val;
+    }
+
+    public function getLiveTableMaxPerPage(): ?int
+    {
+        if ($this->uiConfig === null) {
+            $this->loadIndexFieldsFromConfig();
+        }
+
+        $val = $this->uiConfig['max_per_page'] ?? null;
+        return $val === null ? null : (int) $val;
+    }
+
+    public function getLiveTablePaginationPosition(): ?string
+    {
+        if ($this->uiConfig === null) {
+            $this->loadIndexFieldsFromConfig();
+        }
+
+        $val = $this->uiConfig['pagination_position'] ?? null;
+        return $val === null ? null : (string) $val;
     }
 
     /**
@@ -355,6 +436,7 @@ abstract class AbstractDoctrineCrudHandler implements CrudHandlerInterface
                     'icon'     => 'bi bi-trash',
                     'route'    => 'neox_crud_admin_crud_delete',
                     'method'   => 'DELETE',
+                    'confirm'  => 'Confirmer la suppression ?',
                     'params'   => [ 'id' => 'entity.id' ],
                     'priority' => -110, // keep after edit
                 ];
