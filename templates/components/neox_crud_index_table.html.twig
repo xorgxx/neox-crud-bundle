@@ -1,0 +1,371 @@
+{% set pager = this.pager %}
+{% set columns = this.columns %}
+{% set toolbarButtons = this.toolbarButtons %}
+{% set rowActionsById = this.rowActionsById %}
+{% set bulkActions = this.bulkActions %}
+
+<div {{ attributes }}>
+<div class="d-flex gap-2 align-items-center mb-3">
+  <div class="me-auto" style="min-width: 240px;">
+    <div class="input-group input-group-sm">
+      <span class="input-group-text">
+        <span data-loading="model(search)|hide">🔍</span>
+        <span data-loading="model(search)|delay(150)|show" style="display:none" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      </span>
+      <input
+        type="search"
+        class="form-control"
+        placeholder="Search..."
+        data-model="on(input)|debounce(900)|search"
+      >
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        title="Clear"
+        data-action="live#action"
+        data-live-action-param="clearSearch"
+        {% if this.search is empty %}disabled{% endif %}
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    {% if this.selectionCount > 0 %}
+      <span class="badge text-bg-secondary">{{ this.selectionCount }}</span>
+    {% endif %}
+    <button
+      type="button"
+      class="btn btn-sm btn-outline-secondary"
+      data-action="live#action"
+      data-live-action-param="selectAllCurrentPage"
+    >
+      Select page
+    </button>
+    <button
+      type="button"
+      class="btn btn-sm btn-outline-secondary"
+      data-action="live#action"
+      data-live-action-param="clearSelection"
+      {% if this.selectionCount == 0 %}disabled{% endif %}
+    >
+      Clear
+    </button>
+  </div>
+  {% if toolbarButtons is defined and toolbarButtons is not empty %}
+    {% for btn in toolbarButtons %}
+      {% set isGet = (btn.method|default('GET')|upper) == 'GET' %}
+      {% set turbo = btn.turbo|default({}) %}
+      {% set turboEnabled = turbo.enabled is defined ? turbo.enabled : null %}
+      {% set turboFrame = turbo.frame|default(null) %}
+      {% set turboConfirm = turbo.confirm|default(btn.confirm|default(null)) %}
+      {% if btn.route is defined and btn.route %}
+        {% set params = (btn.params|default({})) %}
+        {% set url = path(btn.route, params|merge({ resource: resource })) %}
+      {% elseif btn.path is defined and btn.path %}
+        {% set url = btn.path %}
+      {% else %}
+        {% set url = '#' %}
+      {% endif %}
+      {% if isGet %}
+        <a
+          href="{{ url }}"
+          class="btn btn-sm {{ btn.class|default('btn-outline-secondary') }}"
+          title="{{ btn.label }}"
+          {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
+          {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
+          {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+        >
+          {% if btn.icon %}<i class="{{ btn.icon }}"></i>{% endif %} {{ btn.label }}
+        </a>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+</div>
+
+{% if bulkActions is defined and bulkActions is not empty %}
+  <div class="d-flex gap-2 align-items-center mb-3">
+    {% for a in bulkActions %}
+      {% set isGet = (a.method|default('GET')|upper) == 'GET' %}
+      {% set turbo = a.turbo|default({}) %}
+      {% set turboEnabled = turbo.enabled is defined ? turbo.enabled : null %}
+      {% set turboFrame = turbo.frame|default(null) %}
+      {% set turboConfirm = turbo.confirm|default(a.confirm|default(null)) %}
+
+      {% if a.route is defined and a.route %}
+        {% set params = (a.params|default({})) %}
+        {% set url = path(a.route, params|merge({ resource: resource, id: 0 })) %}
+      {% elseif a.path is defined and a.path %}
+        {% set url = a.path %}
+      {% else %}
+        {% set url = '#' %}
+      {% endif %}
+
+      {% if isGet %}
+        <a
+          href="{{ url }}"
+          class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}"
+          title="{{ a.label }}"
+          {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
+          {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
+          {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+        >
+          {% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}
+        </a>
+      {% else %}
+        <form
+          method="post"
+          action="{{ url }}"
+          style="display:inline-block"
+          onsubmit="return {{ a.confirm ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};"
+          {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
+          {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
+          {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+        >
+          {% if a.route == 'neox_crud_admin_crud_custom' and a.params.action is defined %}
+            <input type="hidden" name="_token" value="{{ csrf_token('custom_' ~ resource ~ '_0_' ~ a.params.action) }}">
+          {% endif %}
+          <input type="hidden" name="ids" value="{{ this.selectedIds|json_encode }}">
+          <button class="btn btn-sm {{ a.class|default('btn-secondary') }}" {% if a.selection_required|default(true) and this.selectionCount == 0 %}disabled{% endif %}>
+            {% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}
+          </button>
+        </form>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% set hasFilters = false %}
+{% for col in columns %}
+  {% if col.filter is defined and col.filter is not empty %}
+    {% set hasFilters = true %}
+  {% endif %}
+{% endfor %}
+
+{% if hasFilters %}
+  <div class="card card-body mb-3">
+    <div class="row g-2 align-items-end">
+      {% for col in columns %}
+        {% set f = col.filter|default(null) %}
+        {% if f is not empty %}
+          {% set t = f.type|default(null) %}
+          {% if t is defined and t is not empty %}
+            {% if t == 'boolean' %}
+              <div class="col-auto" style="min-width: 180px;">
+                <label class="form-label form-label-sm">{{ col.label }}</label>
+                <select
+                  class="form-select form-select-sm"
+                  data-model="filters[{{ col.name }}]"
+                >
+                  <option value="">All</option>
+                  <option value="1">Yes</option>
+                  <option value="0">No</option>
+                </select>
+              </div>
+            {% elseif t == 'choice' %}
+              <div class="col-auto" style="min-width: 220px;">
+                <label class="form-label form-label-sm">{{ col.label }}</label>
+                <select
+                  class="form-select form-select-sm"
+                  data-model="filters[{{ col.name }}]"
+                >
+                  <option value="">All</option>
+                  {% set choices = f.choices|default({}) %}
+                  {% for choiceLabel, choiceValue in choices %}
+                    <option value="{{ choiceValue }}">{{ choiceLabel }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            {% elseif t == 'date' %}
+              <div class="col-auto" style="min-width: 320px;">
+                <label class="form-label form-label-sm">{{ col.label }}</label>
+                <div class="d-flex gap-2">
+                  <input
+                    type="date"
+                    class="form-control form-control-sm"
+                    data-model="filters[{{ col.name }}][from]"
+                  >
+                  <input
+                    type="date"
+                    class="form-control form-control-sm"
+                    data-model="filters[{{ col.name }}][to]"
+                  >
+                </div>
+              </div>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th style="width: 1%;">
+        <input type="checkbox" class="form-check-input" disabled>
+      </th>
+      {% for col in columns %}
+        {% set voters = col.options.voters|default(null) %}
+        {% set granted = true %}
+        {% if voters is not null %}
+          {% for v in voters %}
+            {% if not is_granted(v) %}
+              {% set granted = false %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+        {% if granted %}
+          <th>
+            {% if col.sortable %}
+              <button
+                type="button"
+                class="btn btn-link p-0 text-decoration-none"
+                data-action="live#action"
+                data-live-action-param="sortBy"
+                data-live-field-param="{{ col.name }}"
+              >
+                {{ col.label }}
+                {% if this.sort == col.name %}
+                  {% if this.direction == 'asc' %}▲{% else %}▼{% endif %}
+                {% endif %}
+              </button>
+            {% else %}
+              {{ col.label }}
+            {% endif %}
+          </th>
+        {% endif %}
+      {% endfor %}
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for item in pager.currentPageResults %}
+    <tr>
+      {% set id = attribute(item, 'id') %}
+      <td>
+        <input type="checkbox" class="form-check-input" value="{{ id }}" data-model="selectedIds[]">
+      </td>
+      {% for col in columns %}
+        {% set voters = col.options.voters|default(null) %}
+        {% set granted = true %}
+        {% if voters is not null %}
+          {% for v in voters %}
+            {% if not is_granted(v) %}
+              {% set granted = false %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+        {% if granted %}
+          {% set value = attribute(item, col.name) %}
+
+          <td>
+            {% if col.options.boolean_icon|default(false) %}
+              {% if value %}✓{% else %}✗{% endif %}
+            {% elseif col.options.type|default(null) == 'image' and value %}
+              <img src="{{ value }}" class="{{ col.options.class|default('') }}" alt="">
+            {% elseif col.options.format|default(null) and value is not null %}
+              {{ value|date(col.options.format) }}
+            {% elseif value is iterable %}
+              {{ value|join(', ') }}
+            {% else %}
+              {{ value }}
+            {% endif %}
+          </td>
+        {% endif %}
+      {% endfor %}
+
+      <td>
+        {% set actions = (rowActionsById is defined and rowActionsById[id] is defined) ? rowActionsById[id] : [] %}
+        {% if actions is not empty %}
+          {% for a in actions %}
+            {% set isGet = (a.method|default('GET')|upper) == 'GET' %}
+            {% set turbo = a.turbo|default({}) %}
+            {% set turboEnabled = turbo.enabled is defined ? turbo.enabled : null %}
+            {% set turboFrame = turbo.frame|default(null) %}
+            {% set turboConfirm = turbo.confirm|default(a.confirm|default(null)) %}
+            {% if a.route is defined and a.route %}
+              {% set params = (a.params|default({})) %}
+              {% set url = path(a.route, params|merge({ resource: resource })) %}
+            {% elseif a.path is defined and a.path %}
+              {% set url = a.path %}
+            {% else %}
+              {% set url = '#' %}
+            {% endif %}
+
+            {% if isGet %}
+              <a
+                href="{{ url }}"
+                class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}"
+                title="{{ a.label }}"
+                {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
+                {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
+                {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+              >
+                {% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}
+              </a>
+            {% else %}
+              {% if a.route == 'neox_crud_admin_crud_delete' %}
+                <form
+                  method="post"
+                  action="{{ url }}"
+                  style="display:inline-block"
+                  onsubmit="return {{ a.confirm ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};"
+                  {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
+                  {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
+                  {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+                >
+                  <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ id) }}">
+                  <button class="btn btn-sm {{ a.class|default('btn-danger') }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
+                </form>
+              {% elseif a.route == 'neox_crud_admin_crud_custom' and a.params.action is defined %}
+                <form
+                  method="post"
+                  action="{{ url }}"
+                  style="display:inline-block"
+                  onsubmit="return {{ a.confirm ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};"
+                  {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
+                  {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
+                  {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+                >
+                  <input type="hidden" name="_token" value="{{ csrf_token('custom_' ~ resource ~ '_' ~ id ~ '_' ~ a.params.action) }}">
+                  <button class="btn btn-sm {{ a.class|default('btn-secondary') }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
+                </form>
+              {% else %}
+                <button class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}" disabled title="{{ a.label }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr>
+      <td colspan="{{ columns|length + 1 }}">Aucun élément.</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<nav>
+  <ul class="pagination">
+    {% for p in 1..pager.nbPages %}
+      <li class="page-item {{ p == pager.currentPage ? 'active' : '' }}">
+        <button
+          type="button"
+          class="page-link"
+          data-action="live#action"
+          data-live-action-param="goToPage"
+          data-live-page-param="{{ p }}"
+        >
+          {{ p }}
+        </button>
+      </li>
+    {% endfor %}
+  </ul>
+</nav>
+
+ </div>

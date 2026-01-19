@@ -1,0 +1,19 @@
+{% extends base_layout %}
+
+{% set __neox_crud_live_content %}
+  <div>
+    {{ component('neox_crud_index_table', { resource: resource }) }}
+  </div>
+{% endset %}
+
+{% block admin_content %}
+  {{ __neox_crud_live_content }}
+{% endblock %}
+
+{% block body %}
+  {{ __neox_crud_live_content }}
+{% endblock %}
+
+{% block content %}
+  {{ __neox_crud_live_content }}
+{% endblock %}

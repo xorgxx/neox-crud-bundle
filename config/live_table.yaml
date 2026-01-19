@@ -1,0 +1,10 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  Neox\NeoxCrudBundle\LiveTable\:
+    resource: '../src/LiveTable/'
+
+  Neox\NeoxCrudBundle\LiveComponent\:
+    resource: '../src/LiveComponent/'
