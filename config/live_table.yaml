@@ -3,6 +3,10 @@ services:
     autowire: true
     autoconfigure: true
 
+  Neox\NeoxCrudBundle\LiveTable\PerformanceOptimizer:
+    arguments:
+      $cache: '@?cache.app'
+
   Neox\NeoxCrudBundle\LiveTable\:
     resource: '../src/LiveTable/'
 

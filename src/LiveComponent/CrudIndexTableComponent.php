@@ -9,6 +9,7 @@ use Neox\NeoxCrudBundle\Crud\CrudHandlerFactory;
 use Neox\NeoxCrudBundle\Crud\CrudHandlerInterface;
 use Neox\NeoxCrudBundle\LiveTable\DoctrineCrudListQueryBuilder;
 use Neox\NeoxCrudBundle\LiveTable\IndexFieldsNormalizer;
+use Neox\NeoxCrudBundle\LiveTable\PerformanceOptimizer;
 use Pagerfanta\Pagerfanta;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -52,29 +53,57 @@ final class CrudIndexTableComponent
         private EntityManagerInterface $em,
         private DoctrineCrudListQueryBuilder $queryBuilder,
         private IndexFieldsNormalizer $fieldsNormalizer,
+        private PerformanceOptimizer $performanceOptimizer,
         private ParameterBagInterface $params,
         private RequestStack $requestStack,
     ) {
     }
 
+    private function getIdField(CrudHandlerInterface $handler): string
+    {
+        $entityClass = $handler->getEntityClass();
+
+        return (string) $this->performanceOptimizer->remember(
+            'neox_crud:id_field:' . $entityClass,
+            function () use ($entityClass): string {
+                $meta = $this->em->getClassMetadata($entityClass);
+                $idFields = $meta->getIdentifierFieldNames();
+                return (string) ($idFields[0] ?? 'id');
+            },
+            3600
+        );
+    }
+
     private function getCount(CrudHandlerInterface $handler, array $cols, ?string $search, array $filters): int
     {
-        $qb = $this->queryBuilder->createForIndex($handler, $cols, null, 'asc', $search, $filters);
+        $key = $this->performanceOptimizer->hashKey(
+            'neox_crud:count:' . $handler->getEntityClass(),
+            [
+                'search' => $search,
+                'filters' => $filters,
+                'cols' => $cols,
+            ]
+        );
 
-        $meta = $this->em->getClassMetadata($handler->getEntityClass());
-        $idFields = $meta->getIdentifierFieldNames();
-        $idField = $idFields[0] ?? 'id';
+        return (int) $this->performanceOptimizer->remember(
+            $key,
+            function () use ($handler, $cols, $search, $filters): int {
+                $qb = $this->queryBuilder->createForIndex($handler, $cols, null, 'asc', $search, $filters);
+                $idField = $this->getIdField($handler);
 
-        $qb->resetDQLPart('orderBy');
-        $qb->select('COUNT(DISTINCT e.' . $idField . ')');
-        $qb->setFirstResult(null);
-        $qb->setMaxResults(null);
+                $qb->resetDQLPart('orderBy');
+                $qb->select('COUNT(DISTINCT e.' . $idField . ')');
+                $qb->setFirstResult(null);
+                $qb->setMaxResults(null);
 
-        try {
-            return (int) $qb->getQuery()->getSingleScalarResult();
-        } catch (\Throwable) {
-            return 0;
-        }
+                try {
+                    return (int) $qb->getQuery()->getSingleScalarResult();
+                } catch (\Throwable) {
+                    return 0;
+                }
+            },
+            10
+        );
     }
 
     public function getTotalCount(): int
@@ -101,7 +130,19 @@ final class CrudIndexTableComponent
         $fields = $handler->getIndexFields();
         $options = method_exists($handler, 'getIndexFieldOptions') ? $handler->getIndexFieldOptions() : [];
 
-        return $this->fieldsNormalizer->normalize($fields, $options);
+        $key = $this->performanceOptimizer->hashKey(
+            'neox_crud:columns:' . $handler::class,
+            [
+                'fields' => $fields,
+                'options' => $options,
+            ]
+        );
+
+        return (array) $this->performanceOptimizer->remember(
+            $key,
+            fn (): array => $this->fieldsNormalizer->normalize($fields, $options),
+            300
+        );
     }
 
     public function getPaginationPosition(): string
@@ -292,11 +333,7 @@ final class CrudIndexTableComponent
     #[LiveAction]
     public function sortBy(#[LiveArg] string $field): void
     {
-        $handler = $this->factory->get($this->resource);
-
-        $fields = $handler->getIndexFields();
-        $options = method_exists($handler, 'getIndexFieldOptions') ? $handler->getIndexFieldOptions() : [];
-        $cols = $this->fieldsNormalizer->normalize($fields, $options);
+        $cols = $this->getColumns();
 
         if (!$this->fieldsNormalizer->isSortable($cols, $field)) {
             return;

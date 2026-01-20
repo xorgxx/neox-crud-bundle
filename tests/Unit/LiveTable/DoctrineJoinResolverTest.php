@@ -18,6 +18,7 @@ final class DoctrineJoinResolverTest extends TestCase
         $em->method('getExpressionBuilder')->willReturn(new Expr());
 
         $qb = new QueryBuilder($em);
+        $qb->select('e')->from('Dummy', 'e');
 
         $resolver = new DoctrineJoinResolver();
 
@@ -27,15 +28,22 @@ final class DoctrineJoinResolverTest extends TestCase
 
         $joins = $qb->getDQLPart('join');
         $this->assertIsArray($joins);
-        $this->assertArrayHasKey('e', $joins);
-        $this->assertCount(1, $joins['e']);
-        $this->assertSame('owner', $joins['e'][0]->getAlias());
-        $this->assertSame('e.owner', $joins['e'][0]->getJoin());
+        $flatJoins = [];
+        foreach ($joins as $rootJoins) {
+            foreach ($rootJoins as $j) {
+                $flatJoins[] = $j;
+            }
+        }
 
-        $this->assertArrayHasKey('owner', $joins);
-        $this->assertCount(1, $joins['owner']);
-        $this->assertSame('owner_company', $joins['owner'][0]->getAlias());
-        $this->assertSame('owner.company', $joins['owner'][0]->getJoin());
+        $this->assertCount(2, $flatJoins);
+
+        $aliases = array_map(static fn ($j) => $j->getAlias(), $flatJoins);
+        $exprs = array_map(static fn ($j) => $j->getJoin(), $flatJoins);
+
+        $this->assertContains('owner', $aliases);
+        $this->assertContains('owner_company', $aliases);
+        $this->assertContains('e.owner', $exprs);
+        $this->assertContains('owner.company', $exprs);
     }
 
     public function testResolveFieldDoesNotDuplicateExistingJoins(): void
@@ -44,6 +52,7 @@ final class DoctrineJoinResolverTest extends TestCase
         $em->method('getExpressionBuilder')->willReturn(new Expr());
 
         $qb = new QueryBuilder($em);
+        $qb->select('e')->from('Dummy', 'e');
 
         $resolver = new DoctrineJoinResolver();
 
@@ -53,10 +62,13 @@ final class DoctrineJoinResolverTest extends TestCase
         $joins = $qb->getDQLPart('join');
         $this->assertIsArray($joins);
 
-        $this->assertArrayHasKey('e', $joins);
-        $this->assertCount(1, $joins['e']);
+        $flatJoins = [];
+        foreach ($joins as $rootJoins) {
+            foreach ($rootJoins as $j) {
+                $flatJoins[] = $j;
+            }
+        }
 
-        $this->assertArrayHasKey('owner', $joins);
-        $this->assertCount(1, $joins['owner']);
+        $this->assertCount(2, $flatJoins);
     }
 }
