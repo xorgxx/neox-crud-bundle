@@ -1,0 +1,135 @@
+{% extends base_layout %}
+
+{% set __neox_crud_classic_content %}
+  {% set __title_key = resource ~ '.title.index' %}
+  {% set __title_val = __title_key|trans({}, resource) %}
+  <h1>{{ __title_val != __title_key ? __title_val : ('Liste des ' ~ resource|capitalize ~ 's') }}</h1>
+
+  <div class="d-flex gap-2 align-items-center mb-3">
+    <a href="{{ path('neox_crud_admin_crud_new', { resource: resource }) }}" class="btn btn-primary">
+      {% set __new_key = resource ~ '.action.new' %}
+      {% set __new_val = __new_key|trans({}, resource) %}
+      {{ __new_val != __new_key ? __new_val : 'Nouveau' }}
+    </a>
+
+    {% if toolbarButtons is defined and toolbarButtons is not empty %}
+      {% for btn in toolbarButtons %}
+        {% set isGet = (btn.method|default('GET')|upper) == 'GET' %}
+        {% if btn.route is defined and btn.route %}
+          {% set params = (btn.params|default({})) %}
+          {% set url = path(btn.route, params|merge({ resource: resource })) %}
+        {% elseif btn.path is defined and btn.path %}
+          {% set url = btn.path %}
+        {% else %}
+          {% set url = '#' %}
+        {% endif %}
+
+        {% if isGet %}
+          <a href="{{ url }}" class="btn btn-sm {{ btn.class|default('btn-outline-secondary') }}" title="{{ btn.label }}">
+            {% if btn.icon %}<i class="{{ btn.icon }}"></i>{% endif %} {{ btn.label }}
+          </a>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        {% for field in fields %}
+          {% set __field_key = resource ~ '.field.' ~ field ~ '.label' %}
+          {% set __field_val = __field_key|trans({}, resource) %}
+          <th>{{ __field_val != __field_key ? __field_val : field|capitalize }}</th>
+        {% endfor %}
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+        <tr>
+          <td>{{ attribute(item, 'id') }}</td>
+          {% for field in fields %}
+            <td>
+              {% set value = attribute(item, field) %}
+              {% if value is iterable %}
+                {{ value|join(', ') }}
+              {% else %}
+                {{ value }}
+              {% endif %}
+            </td>
+          {% endfor %}
+          <td>
+            {% set __id = attribute(item, 'id') %}
+            {% set __idKey = __id ~ '' %}
+            {% set actions = (rowActionsById is defined and rowActionsById[__idKey] is defined) ? rowActionsById[__idKey] : [] %}
+
+            {% if actions is not empty %}
+              {% for a in actions %}
+                {% set isGet = (a.method|default('GET')|upper) == 'GET' %}
+                {% if a.route is defined and a.route %}
+                  {% set params = (a.params|default({})) %}
+                  {% set url = path(a.route, params|merge({ resource: resource })) %}
+                {% elseif a.path is defined and a.path %}
+                  {% set url = a.path %}
+                {% else %}
+                  {% set url = '#' %}
+                {% endif %}
+
+                {% if isGet %}
+                  <a href="{{ url }}" class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}" title="{{ a.label }}">
+                    {% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}
+                  </a>
+                {% else %}
+                  {% if a.route == 'neox_crud_admin_crud_delete' %}
+                    <form method="post" action="{{ url }}" style="display:inline-block" onsubmit="return {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};">
+                      <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ __idKey) }}">
+                      <button class="btn btn-sm {{ a.class|default('btn-danger') }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
+                    </form>
+                  {% elseif a.route == 'neox_crud_admin_crud_custom' and a.params.action is defined %}
+                    <form method="post" action="{{ url }}" style="display:inline-block" onsubmit="return {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};">
+                      <input type="hidden" name="_token" value="{{ csrf_token('custom_' ~ resource ~ '_' ~ __idKey ~ '_' ~ a.params.action) }}">
+                      <button class="btn btn-sm {{ a.class|default('btn-secondary') }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
+                    </form>
+                  {% else %}
+                    <button class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}" disabled title="{{ a.label }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            {% else %}
+              <a href="{{ path('neox_crud_admin_crud_edit', { resource: resource, id: __id }) }}" class="btn btn-sm btn-secondary">
+                {% set __edit_key = resource ~ '.action.edit' %}
+                {% set __edit_val = __edit_key|trans({}, resource) %}
+                {{ __edit_val != __edit_key ? __edit_val : 'Éditer' }}
+              </a>
+              <form method="post" action="{{ path('neox_crud_admin_crud_delete', { resource: resource, id: __id }) }}" style="display:inline-block" onsubmit="return confirm('Confirmer la suppression ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ __idKey) }}">
+                <button class="btn btn-sm btn-danger">
+                  {% set __del_key = resource ~ '.action.delete' %}
+                  {% set __del_val = __del_key|trans({}, resource) %}
+                  {{ __del_val != __del_key ? __del_val : 'Supprimer' }}
+                </button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="{{ 2 + fields|length }}">Aucun élément.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endset %}
+
+{% block admin_content %}
+  {{ __neox_crud_classic_content }}
+{% endblock %}
+
+{% block body %}
+  {{ __neox_crud_classic_content }}
+{% endblock %}
+
+{% block content %}
+  {{ __neox_crud_classic_content }}
+{% endblock %}

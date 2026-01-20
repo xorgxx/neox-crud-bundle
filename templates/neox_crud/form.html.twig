@@ -1,0 +1,34 @@
+{% extends base_layout %}
+
+{% set __neox_crud_form_content %}
+  {% set __is_edit = entity is defined and attribute(entity, 'id') is not null %}
+
+  {% set __title_key = resource ~ '.title.' ~ (__is_edit ? 'edit' : 'new') %}
+  {% set __title_val = __title_key|trans({}, resource) %}
+
+  <h1>
+    {{ __title_val != __title_key ? __title_val : (__is_edit ? 'Modifier' : 'Nouveau') }}
+  </h1>
+
+  {{ form_start(form) }}
+    {{ form_widget(form) }}
+
+    <button class="btn btn-primary">Enregistrer</button>
+
+    <a href="{{ path('neox_crud_admin_crud_index', { resource: resource }) }}" class="btn btn-secondary">
+      Retour à la liste
+    </a>
+  {{ form_end(form) }}
+{% endset %}
+
+{% block admin_content %}
+  {{ __neox_crud_form_content }}
+{% endblock %}
+
+{% block body %}
+  {{ __neox_crud_form_content }}
+{% endblock %}
+
+{% block content %}
+  {{ __neox_crud_form_content }}
+{% endblock %}

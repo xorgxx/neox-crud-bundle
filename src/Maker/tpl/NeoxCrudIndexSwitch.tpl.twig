@@ -1,0 +1,17 @@
+{%- if twig_base_layout is defined and twig_base_layout is not empty -%}
+    {%- set base_layout = twig_base_layout -%}
+{%- elseif templates_namespace is defined and templates_namespace is not empty -%}
+    {%- set base_layout = '@' ~ templates_namespace ~ '/admin/_layout.html.twig' -%}
+{%- else -%}
+    {%- set base_layout = 'Admin/Partial/_layout-administrator.html.twig' -%}
+{%- endif -%}
+
+{% extends base_layout %}
+
+{% block content %}
+    {% if liveEnabled is defined and liveEnabled and liveAvailable is defined and liveAvailable %}
+        {{ component('neox_crud_index_table', { resource: resource }) }}
+    {% else %}
+        {% include 'admin/' ~ resource ~ '/index_classic.html.twig' %}
+    {% endif %}
+{% endblock %}
