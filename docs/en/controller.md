@@ -146,3 +146,44 @@ if ($handler->handleForm($request, $form)) {
 See also
 - docs/en/config.md
 - docs/en/cli.md
+
+---
+
+9) Twig customization (override templates)
+
+NeoxCrudBundle renders LiveTable using bundle templates:
+- `@NeoxCrud/neox_crud/index_live.html.twig`
+- `@NeoxCrud/neox_crud/index_classic.html.twig` (classic fallback)
+- `@NeoxCrud/neox_crud/form.html.twig` (new/edit form)
+- `@NeoxCrud/components/neox_crud_index_table.html.twig` (LiveComponent template)
+
+To customize them **without modifying the bundle**, override the `NeoxCrud` Twig namespace in your application.
+
+Step 1 — register a local path for the `NeoxCrud` namespace
+```yaml
+# config/packages/twig.yaml
+twig:
+  paths:
+    '%kernel.project_dir%/templates/neox_crud': 'NeoxCrud'
+```
+
+Step 2 — copy the template(s) you want to override
+- Override the LiveTable page wrapper:
+  - from the bundle: `templates/neox_crud/index_live.html.twig`
+  - to your app: `templates/neox_crud/neox_crud/index_live.html.twig`
+
+- Override the classic index fallback:
+  - from the bundle: `templates/neox_crud/index_classic.html.twig`
+  - to your app: `templates/neox_crud/neox_crud/index_classic.html.twig`
+
+- Override the CRUD form (new/edit):
+  - from the bundle: `templates/neox_crud/form.html.twig`
+  - to your app: `templates/neox_crud/neox_crud/form.html.twig`
+
+- Override the LiveTable component template:
+  - from the bundle: `templates/components/neox_crud_index_table.html.twig`
+  - to your app: `templates/neox_crud/components/neox_crud_index_table.html.twig`
+
+Notes
+- Twig will resolve `@NeoxCrud/...` to your application templates first, then fallback to the bundle.
+- This mechanism also works for any other bundle template under the `@NeoxCrud` namespace.

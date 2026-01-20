@@ -37,9 +37,9 @@ Examples
   - php bin/console make:neox:crud App\\Entity\\Product --slug=catalog-item --with-trans --locale=en
 
 What gets generated/used
-- Twig templates under templates/admin/<resource>/{index,form}.html.twig
 - Handler class under App\\Crud\\Handler\\<Entity>CrudHandler (namespaced PHP class)
 - FormType under App\\Form\\<Entity>Type (namespaced PHP class)
+- Twig templates are provided by the bundle under the `@NeoxCrud` namespace (customizable via overriding)
 
 ---
 
@@ -58,7 +58,7 @@ Arguments
 Behavior
 - Generates a class App\Crud\Handler\<Resource>CrudHandler extending AbstractDoctrineCrudHandler
 - Wires the resource name, the entity FQCN, and the FormType automatically
-- Prints a reminder to create/override Twig templates: templates/admin/<resource>/{index,form}.html.twig
+- Twig rendering is handled by bundle templates under `@NeoxCrud` (override via `twig.paths` if you need customization)
 - Creates a commented per-handler `config.yaml` next to the handler with a list of detected Doctrine fields and a ready-to-uncomment `index_fields` example pre-filled with those fields.
   The `index_fields` key now also supports per-field attributes (optional) such as `format`, `boolean_icon`, `type: image`, and `voters`. See docs/en/config.md → "Advanced attributes". Templates keep using `fields` (names) and may read `field_options` for attributes.
 
@@ -83,10 +83,10 @@ Options
 - --slug: the resource slug (preferred) (default: lowercased short entity name)
 - --with-trans: generate a translation YAML for the resource
 - --locale: language for the translation file (default: fr)
-- --twig-namespace: Either a Twig namespace (e.g. `Admin`, `NeoxCrud`) or a full Twig template path (e.g. `@Admin/Partial/_layout.html.twig` or `Admin/Partial/_layout.html.twig`) for the base layout used by generated templates. Overrides configuration `neox_crud.makers.templates_namespace`.
-- --twig-base-layout: Explicit Twig base layout path for the generated templates (e.g. `@App/admin/_layout.html.twig` or `/admin/_layout.html.twig`). Overrides both `--twig-namespace` and configuration.
+- --twig-namespace: Either a Twig namespace (e.g. `Admin`, `NeoxCrud`) or a full Twig template path (e.g. `@Admin/Partial/_layout.html.twig` or `Admin/Partial/_layout.html.twig`). Used to resolve the base layout for bundle templates. Overrides configuration `neox_crud.makers.templates_namespace`.
+- --twig-base-layout: Explicit Twig base layout path (e.g. `@App/admin/_layout.html.twig` or `/admin/_layout.html.twig`). Overrides both `--twig-namespace` and configuration.
 - --with-controller: also generate a dedicated controller extending `GenericCrudController` for this resource (disabled by default).
-- --with-bulk-ui: include a selection column and render configured `bulk_actions` in the generated index template (disabled by default; fully backward compatible).
+- --with-bulk-ui: no longer generates Twig templates, so this flag does not affect generated files.
 
 Backward compatibility
 - --resource is still accepted as an alias but is deprecated in favor of --slug.
@@ -96,7 +96,7 @@ Behavior
   - a FormType App\Form\<Entity>Type
     - SAFETY: if the FormType already exists, it will never be modified; a suggested version is written to src/Form/<Entity>Type.php.sav for manual merge
   - a Handler App\Crud\Handler\<Entity>CrudHandler
-  - base Twig templates (index and form) under templates/admin/<resource>/
+  - (no Twig templates are generated; the bundle provides defaults under `@NeoxCrud`)
   - (optional) a translation YAML for field keys aligned with neox_crud.translations.field_keys
 
 Notes
@@ -143,14 +143,17 @@ Generated files (example)
 - src/Form/ProductType.php (or .php.sav if already present)
 - src/Crud/Handler/ProductCrudHandler.php
 - src/Crud/Handle/Product/config.yaml  (commented; includes detected fields list and `index_fields` example)
-- templates/admin/product/index.html.twig
-- templates/admin/product/form.html.twig
 - translations/product.<locale>.yaml (if --with-trans)
 - src/Controller/ProductCrudController.php (if --with-controller)
   
 Notes about bulk UI (opt-in)
-- When `--with-bulk-ui` is used, the index template includes a selection column and renders `bulk_actions` (defined in the per-handler YAML) as POST forms protected by CSRF.
-- Without the flag, behavior is unchanged and no bulk UI is generated.
+- The LiveTable (when enabled) supports selection + bulk actions in the component UI.
+- In classic mode, the bundle classic template focuses on a simple table + actions.
+
+Twig customization (LiveTable)
+- LiveTable uses bundle templates under the `@NeoxCrud` namespace.
+- To customize LiveTable rendering without touching the bundle, override `NeoxCrud` via `twig.paths`.
+  See docs/en/controller.md → "Twig customization (override templates)".
 
 ---
 

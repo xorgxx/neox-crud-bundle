@@ -340,29 +340,7 @@ HELP)
             );
         }
 
-        // 3) Generate templates
-        $indexTemplatePath = 'templates/' . $templatePrefix . '/index.html.twig';
-        $formTemplatePath  = 'templates/' . $templatePrefix . '/form.html.twig';
-
-        // Choose index template based on optional --with-bulk-ui flag (opt-in, BC safe)
-        $withBulkUi      = (bool) $input->getOption('with-bulk-ui');
-        $indexTplVariant = $withBulkUi ? 'NeoxCrudIndexBulk.tpl.twig' : 'NeoxCrudIndex.tpl.twig';
-
-        $generator->generateFile($indexTemplatePath, __DIR__ . '/tpl/' . $indexTplVariant, [
-                'resource'         => $resourceSlug,
-                'fields'           => $fieldNames,
-                'twig_namespace'   => $twigNamespace,
-                'twig_base_layout' => $twigBaseLayout,
-                'with_bulk_ui'     => $withBulkUi,
-            ]);
-
-        $generator->generateFile($formTemplatePath, __DIR__ . '/tpl/NeoxCrudForm.tpl.twig', [
-                'resource'         => $resourceSlug,
-                'twig_namespace'   => $twigNamespace,
-                'twig_base_layout' => $twigBaseLayout,
-            ]);
-
-        // 3.bis) Optional dedicated controller generation
+        // 3) Optional dedicated controller generation
         if ((bool) $input->getOption('with-controller')) {
             $controllerClassNameDetails = $generator->createClassNameDetails($entityShortName . 'CrudController', 'Controller\\');
 

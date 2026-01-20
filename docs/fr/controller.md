@@ -146,3 +146,44 @@ if ($handler->handleForm($request, $form)) {
 Voir aussi
 - docs/fr/config.md
 - docs/fr/cli.md
+
+---
+
+9) Personnalisation Twig (override des templates)
+
+Le bundle rend la LiveTable via des templates Twig du bundle :
+- `@NeoxCrud/neox_crud/index_live.html.twig`
+- `@NeoxCrud/neox_crud/index_classic.html.twig` (fallback classique)
+- `@NeoxCrud/neox_crud/form.html.twig` (formulaire new/edit)
+- `@NeoxCrud/components/neox_crud_index_table.html.twig` (template du LiveComponent)
+
+Pour les personnaliser **sans modifier le bundle**, vous pouvez surcharger le namespace Twig `NeoxCrud` dans votre application.
+
+Étape 1 — déclarer un chemin local pour le namespace `NeoxCrud`
+```yaml
+# config/packages/twig.yaml
+twig:
+  paths:
+    '%kernel.project_dir%/templates/neox_crud': 'NeoxCrud'
+```
+
+Étape 2 — copier le(s) template(s) à surcharger
+- Surcharger la page LiveTable (wrapper) :
+  - depuis le bundle : `templates/neox_crud/index_live.html.twig`
+  - vers l’app : `templates/neox_crud/neox_crud/index_live.html.twig`
+
+- Surcharger l’index classique (fallback) :
+  - depuis le bundle : `templates/neox_crud/index_classic.html.twig`
+  - vers l’app : `templates/neox_crud/neox_crud/index_classic.html.twig`
+
+- Surcharger le formulaire CRUD (new/edit) :
+  - depuis le bundle : `templates/neox_crud/form.html.twig`
+  - vers l’app : `templates/neox_crud/neox_crud/form.html.twig`
+
+- Surcharger le template du composant LiveTable :
+  - depuis le bundle : `templates/components/neox_crud_index_table.html.twig`
+  - vers l’app : `templates/neox_crud/components/neox_crud_index_table.html.twig`
+
+Notes
+- Twig résout `@NeoxCrud/...` d’abord vers vos templates applicatifs, puis retombe sur ceux du bundle.
+- Le même mécanisme fonctionne pour n’importe quel autre template exposé via le namespace `@NeoxCrud`.

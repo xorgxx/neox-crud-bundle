@@ -79,12 +79,12 @@ class GenericCrudController extends AbstractController
             && (\class_exists('Pagerfanta\\Doctrine\\ORM\\QueryAdapter')
                 || \class_exists('Pagerfanta\\Adapter\\Doctrine\\ORM\\QueryAdapter'));
 
-        if ($liveEnabled && $depsOk) {
-            $baseLayout = $this->getParameter('neox_crud.makers.base_layout');
-            if (!\is_string($baseLayout) || $baseLayout === '') {
-                $baseLayout = '@NeoxCrud/admin/_layout.html.twig';
-            }
+        $baseLayout = $this->getParameter('neox_crud.makers.base_layout');
+        if (!\is_string($baseLayout) || $baseLayout === '') {
+            $baseLayout = '@NeoxCrud/admin/_layout.html.twig';
+        }
 
+        if ($liveEnabled && $depsOk) {
             return $this->render('@NeoxCrud/neox_crud/index_live.html.twig', [
                 'items'    => $items,
                 'resource' => $resource,
@@ -98,7 +98,7 @@ class GenericCrudController extends AbstractController
             ]);
         }
 
-        return $this->render($handler->getTemplatePrefix() . '/index.html.twig', [
+        return $this->render('@NeoxCrud/neox_crud/index_classic.html.twig', [
             'items'    => $items,
             'resource' => $resource,
             'fields'   => $handler->getIndexFields(),
@@ -110,6 +110,7 @@ class GenericCrudController extends AbstractController
             'toolbarButtons' => $toolbarButtons,
             'bulkActions'    => $bulkActions,
             'rowActionsById' => $rowActionsById,
+            'base_layout' => $baseLayout,
         ]);
     }
 
@@ -130,10 +131,16 @@ class GenericCrudController extends AbstractController
             return $this->redirectToRoute($route, $params);
         }
 
-        return $this->render($handler->getTemplatePrefix() . '/form.html.twig', [
+        $baseLayout = $this->getParameter('neox_crud.makers.base_layout');
+        if (!\is_string($baseLayout) || $baseLayout === '') {
+            $baseLayout = '@NeoxCrud/admin/_layout.html.twig';
+        }
+
+        return $this->render('@NeoxCrud/neox_crud/form.html.twig', [
             'form'     => $form->createView(),
             'entity'   => $entity,
             'resource' => $resource,
+            'base_layout' => $baseLayout,
         ]);
     }
 
@@ -159,10 +166,16 @@ class GenericCrudController extends AbstractController
             return $this->redirectToRoute($route, $params);
         }
 
-        return $this->render($handler->getTemplatePrefix() . '/form.html.twig', [
+        $baseLayout = $this->getParameter('neox_crud.makers.base_layout');
+        if (!\is_string($baseLayout) || $baseLayout === '') {
+            $baseLayout = '@NeoxCrud/admin/_layout.html.twig';
+        }
+
+        return $this->render('@NeoxCrud/neox_crud/form.html.twig', [
             'form'     => $form->createView(),
             'entity'   => $entity,
             'resource' => $resource,
+            'base_layout' => $baseLayout,
         ]);
     }
 

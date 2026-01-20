@@ -38,9 +38,9 @@ Exemples
   - php bin/console make:neox:crud App\\Entity\\Product --slug=catalog-item --with-trans --locale=en
 
 Ce qui est généré/utilisé
-- Templates Twig sous templates/admin/<resource>/{index,form}.html.twig
 - Classe Handler sous App\\Crud\\Handler\\<Entity>CrudHandler (classe PHP namespacée)
 - FormType sous App\\Form\\<Entity>Type (classe PHP namespacée)
+- Les templates Twig sont fournis par le bundle via le namespace `@NeoxCrud` (personnalisables via override)
 
 ---
 
@@ -59,7 +59,7 @@ Arguments
 Comportement
 - Génère une classe App\Crud\Handler\<Resource>CrudHandler qui étend AbstractDoctrineCrudHandler
 - Branche automatiquement le nom de ressource, le FQCN de l’entité et le FormType
-- Affiche un rappel pour créer/surcharger les templates Twig: templates/admin/<resource>/{index,form}.html.twig
+- Le rendu Twig est assuré par les templates du bundle sous `@NeoxCrud` (override via `twig.paths` si besoin)
 - Crée également un fichier `config.yaml` commenté à côté du handler avec les options supportées. Le fichier inclut la liste des champs Doctrine détectés et une ligne `index_fields` pré-remplie (commentée) avec tous ces champs pour un démarrage rapide.
   La clé `index_fields` supporte aussi des attributs par champ (optionnels) comme `format`, `boolean_icon`, `type: image`, et `voters`. Voir docs/fr/config.md → « Attributs avancés ». Les templates continuent d’utiliser `fields` (noms) et peuvent lire `field_options` pour les attributs.
 
@@ -84,10 +84,10 @@ Options
 - --slug: slug de la ressource (préféré) (par défaut: nom court de l’entité en minuscule)
 - --with-trans: génère un fichier de traduction pour la ressource
 - --locale: langue pour le fichier de traduction (défaut: fr)
-- --twig-namespace: Soit un namespace Twig (ex. `Admin`, `NeoxCrud`), soit un chemin complet de template Twig (ex. `@Admin/Partial/_layout.html.twig` ou `Admin/Partial/_layout.html.twig`) pour le layout de base que les templates générés vont étendre. Surcharge la configuration `neox_crud.makers.templates_namespace`.
+- --twig-namespace: Soit un namespace Twig (ex. `Admin`, `NeoxCrud`), soit un chemin complet de template Twig (ex. `@Admin/Partial/_layout.html.twig` ou `Admin/Partial/_layout.html.twig`) utilisé pour résoudre le layout de base des templates du bundle. Surcharge `neox_crud.makers.templates_namespace`.
 - --twig-base-layout: Chemin Twig explicite pour le layout de base (ex. `@App/admin/_layout.html.twig` ou `/admin/_layout.html.twig`). Prioritaire sur `--twig-namespace` et sur la configuration.
 - --with-controller: génère un contrôleur dédié qui étend `GenericCrudController` pour cette ressource (désactivé par défaut).
-- --with-bulk-ui: inclut une colonne de sélection et le rendu des `bulk_actions` dans le template d’index généré (désactivé par défaut; 100% rétrocompatible).
+- --with-bulk-ui: ne génère plus de templates Twig, ce flag n’a donc pas d’impact sur les fichiers générés.
 
 Compatibilité ascendante
 - --resource reste accepté comme alias mais est déprécié au profit de --slug.
@@ -98,7 +98,7 @@ Comportement
   - SÉCURITÉ: si le FormType existe déjà, il n’est jamais modifié; une version suggérée est écrite dans src/Form/<Entity>Type.php.sav pour fusion manuelle
   - un Handler App\Crud\Handler\<Entity>CrudHandler
   - un fichier `config.yaml` commenté: `src/Crud/Handle/<Entity>/config.yaml`
-  - les templates Twig de base (index et form) sous templates/admin/<resource>/
+  - (aucun template Twig n’est généré ; le bundle fournit des templates par défaut via `@NeoxCrud`)
   - (optionnel) un YAML de traduction pour les champs, aligné sur neox_crud.translations.field_keys
 
 Notes
@@ -165,14 +165,17 @@ Ouvrir la page CRUD dans le navigateur
 Fichiers générés (exemple)
 - src/Form/ProductType.php (ou .php.sav si déjà présent)
 - src/Crud/Handler/ProductCrudHandler.php
-- templates/admin/product/index.html.twig
-- templates/admin/product/form.html.twig
 - translations/product.<locale>.yaml (si --with-trans)
 - src/Controller/ProductCrudController.php (si --with-controller)
 
 Notes sur l’UI de masse (opt‑in)
-- Avec `--with-bulk-ui`, le template d’index inclut une colonne de sélection et rend les `bulk_actions` (définies dans le YAML du handler) comme des formulaires POST protégés par CSRF.
-- Sans ce flag, le comportement reste inchangé et aucune UI de masse n’est générée.
+- La LiveTable (si activée) supporte la sélection + actions de masse dans l’UI du composant.
+- En mode classique, le template classique du bundle vise une table simple + actions.
+
+Personnalisation Twig (LiveTable)
+- La LiveTable utilise des templates du bundle sous le namespace `@NeoxCrud`.
+- Pour personnaliser le rendu sans modifier le bundle, surchargez le namespace `NeoxCrud` via `twig.paths`.
+  Voir docs/fr/controller.md → « Personnalisation Twig (override des templates) ».
 
 ---
 
