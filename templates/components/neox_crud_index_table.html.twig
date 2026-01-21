@@ -318,7 +318,7 @@
           </th>
         {% endif %}
       {% endfor %}
-      <th>Actions</th>
+      <th class="text-start" style="width: 1%; white-space: nowrap;">Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -361,9 +361,9 @@
         {% endif %}
       {% endfor %}
 
-      <td class="align-middle">
+      <td class="align-middle text-end" style="width: 1%; white-space: nowrap;">
         {% set actions = (rowActionsById is defined and rowActionsById[idKey] is defined) ? rowActionsById[idKey] : [] %}
-        <div class="d-inline-flex gap-1 align-items-center flex-wrap">
+        <div class="d-inline-flex gap-1 align-items-center justify-content-end flex-nowrap">
           {% if actions is not empty %}
             {% for a in actions %}
               {% set isGet = (a.method|default('GET')|upper) == 'GET' %}

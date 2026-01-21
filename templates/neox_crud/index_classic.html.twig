@@ -44,7 +44,7 @@
           {% set __field_val = __field_key|trans({}, resource) %}
           <th>{{ __field_val != __field_key ? __field_val : field|capitalize }}</th>
         {% endfor %}
-        <th>Actions</th>
+        <th class="text-start" style="width: 1%; white-space: nowrap;">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -61,10 +61,12 @@
               {% endif %}
             </td>
           {% endfor %}
-          <td>
+          <td class="text-end" style="width: 1%; white-space: nowrap;">
             {% set __id = attribute(item, 'id') %}
             {% set __idKey = __id ~ '' %}
             {% set actions = (rowActionsById is defined and rowActionsById[__idKey] is defined) ? rowActionsById[__idKey] : [] %}
+
+            <div class="d-inline-flex gap-1 align-items-center justify-content-end flex-nowrap">
 
             {% if actions is not empty %}
               {% for a in actions %}
@@ -113,6 +115,8 @@
                 </button>
               </form>
             {% endif %}
+
+            </div>
           </td>
         </tr>
       {% else %}
