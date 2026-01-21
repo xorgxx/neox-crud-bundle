@@ -84,6 +84,25 @@ class GenericCrudController extends AbstractController
             $baseLayout = '@NeoxCrud/admin/_layout.html.twig';
         }
 
+        $contentBlock = $this->getParameter('neox_crud.makers.content_block');
+        if (!\is_string($contentBlock) || $contentBlock === '') {
+            $contentBlock = 'content';
+        }
+
+        if (method_exists($handler, 'getTwigBaseLayout')) {
+            $handlerBaseLayout = $handler->getTwigBaseLayout();
+            if (\is_string($handlerBaseLayout) && $handlerBaseLayout !== '') {
+                $baseLayout = $handlerBaseLayout;
+            }
+        }
+
+        if (method_exists($handler, 'getTwigContentBlock')) {
+            $handlerContentBlock = $handler->getTwigContentBlock();
+            if (\is_string($handlerContentBlock) && $handlerContentBlock !== '') {
+                $contentBlock = $handlerContentBlock;
+            }
+        }
+
         if ($liveEnabled && $depsOk) {
             return $this->render('@NeoxCrud/neox_crud/index_live.html.twig', [
                 'items'    => $items,
@@ -95,6 +114,7 @@ class GenericCrudController extends AbstractController
                 'bulkActions'    => $bulkActions,
                 'rowActionsById' => $rowActionsById,
                 'base_layout' => $baseLayout,
+                'content_block' => $contentBlock,
             ]);
         }
 
@@ -111,6 +131,7 @@ class GenericCrudController extends AbstractController
             'bulkActions'    => $bulkActions,
             'rowActionsById' => $rowActionsById,
             'base_layout' => $baseLayout,
+            'content_block' => $contentBlock,
         ]);
     }
 
@@ -136,11 +157,31 @@ class GenericCrudController extends AbstractController
             $baseLayout = '@NeoxCrud/admin/_layout.html.twig';
         }
 
+        $contentBlock = $this->getParameter('neox_crud.makers.content_block');
+        if (!\is_string($contentBlock) || $contentBlock === '') {
+            $contentBlock = 'content';
+        }
+
+        if (method_exists($handler, 'getTwigBaseLayout')) {
+            $handlerBaseLayout = $handler->getTwigBaseLayout();
+            if (\is_string($handlerBaseLayout) && $handlerBaseLayout !== '') {
+                $baseLayout = $handlerBaseLayout;
+            }
+        }
+
+        if (method_exists($handler, 'getTwigContentBlock')) {
+            $handlerContentBlock = $handler->getTwigContentBlock();
+            if (\is_string($handlerContentBlock) && $handlerContentBlock !== '') {
+                $contentBlock = $handlerContentBlock;
+            }
+        }
+
         return $this->render('@NeoxCrud/neox_crud/form.html.twig', [
             'form'     => $form->createView(),
             'entity'   => $entity,
             'resource' => $resource,
             'base_layout' => $baseLayout,
+            'content_block' => $contentBlock,
         ]);
     }
 
@@ -171,11 +212,31 @@ class GenericCrudController extends AbstractController
             $baseLayout = '@NeoxCrud/admin/_layout.html.twig';
         }
 
+        $contentBlock = $this->getParameter('neox_crud.makers.content_block');
+        if (!\is_string($contentBlock) || $contentBlock === '') {
+            $contentBlock = 'content';
+        }
+
+        if (method_exists($handler, 'getTwigBaseLayout')) {
+            $handlerBaseLayout = $handler->getTwigBaseLayout();
+            if (\is_string($handlerBaseLayout) && $handlerBaseLayout !== '') {
+                $baseLayout = $handlerBaseLayout;
+            }
+        }
+
+        if (method_exists($handler, 'getTwigContentBlock')) {
+            $handlerContentBlock = $handler->getTwigContentBlock();
+            if (\is_string($handlerContentBlock) && $handlerContentBlock !== '') {
+                $contentBlock = $handlerContentBlock;
+            }
+        }
+
         return $this->render('@NeoxCrud/neox_crud/form.html.twig', [
             'form'     => $form->createView(),
             'entity'   => $entity,
             'resource' => $resource,
             'base_layout' => $baseLayout,
+            'content_block' => $contentBlock,
         ]);
     }
 

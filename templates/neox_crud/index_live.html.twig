@@ -1,19 +1,27 @@
 {% extends base_layout %}
 
-{% set __neox_crud_live_content %}
-  <div>
+{% set content_block = content_block|default('content') %}
+
+{% block neox_crud_content %}
+  <div class="container">
     {{ component('neox_crud_index_table', { resource: resource }) }}
   </div>
-{% endset %}
+{% endblock %}
 
 {% block admin_content %}
-  {{ __neox_crud_live_content }}
+  {% if content_block == 'admin_content' %}
+    {{ block('neox_crud_content') }}
+  {% endif %}
 {% endblock %}
 
 {% block body %}
-  {{ __neox_crud_live_content }}
+  {% if content_block == 'body' %}
+    {{ block('neox_crud_content') }}
+  {% endif %}
 {% endblock %}
 
 {% block content %}
-  {{ __neox_crud_live_content }}
+  {% if content_block == 'content' %}
+    {{ block('neox_crud_content') }}
+  {% endif %}
 {% endblock %}

@@ -48,7 +48,15 @@ neox_crud:
     enabled: false
 ```
 
-6) Tout combiner
+6) Choisir le layout Twig et le block cible (intégration dans `{% block content %}`)
+```yaml
+neox_crud:
+  makers:
+    base_layout: 'Admin/Partial/_layout-administrator.html.twig'
+    content_block: 'content'
+```
+
+7) Tout combiner
 ```yaml
 neox_crud:
   uploads_dir: 'public/media'
@@ -64,7 +72,7 @@ neox_crud:
       help: 'Aide concernant %field_label%'
 ```
 
-7) Activer la LiveTable (pagination et position)
+8) Activer la LiveTable (pagination et position)
 
 Configuration globale (config/packages/neox_crud.yaml) :
 ```yaml

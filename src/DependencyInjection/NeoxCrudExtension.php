@@ -50,6 +50,7 @@ class NeoxCrudExtension extends Extension implements PrependExtensionInterface
         $container->setParameter('neox_crud.uploads_dir', $config['uploads_dir']);
         $container->setParameter('neox_crud.makers.templates_namespace', $config['makers']['templates_namespace'] ?? 'NeoxCrud');
         $container->setParameter('neox_crud.makers.base_layout', $config['makers']['base_layout'] ?? null);
+        $container->setParameter('neox_crud.makers.content_block', $config['makers']['content_block'] ?? 'content');
         $container->setParameter('neox_crud.makers', $config['makers'] ?? null);
 
         $container->setParameter('neox_crud.live_table.enabled', (bool) ($config['live_table']['enabled'] ?? false));

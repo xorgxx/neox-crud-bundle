@@ -9,6 +9,7 @@ Sommaire
 - makers.enabled
 - makers.templates_namespace
 - makers.base_layout
+- makers.content_block
 - translations.field_keys
 - translations.patterns
  - Surcharges YAML par handler (index_fields)
@@ -36,6 +37,9 @@ neox_crud:
     templates_namespace: 'App'   # ex: vos layouts sous @App/admin/_layout.html.twig
     # Chemin explicite du layout de base (peut être surchargé par --twig-base-layout)
     base_layout: null
+    # Nom du block Twig cible où le CRUD doit s’insérer (ex: content, body, admin_content)
+    # Défaut: content
+    content_block: content
   
   # Schéma de traductions auto-générées par le Maker (option --with-trans)
   translations:
@@ -96,6 +100,12 @@ Détails des options
 - Défaut: null
 - Effet: Chemin Twig explicite pour le layout de base utilisé par le Maker lors de la génération (ex. `@App/admin/_layout.html.twig` ou `/admin/_layout.html.twig`).
 - Priorité: CLI `--twig-base-layout` > cette option `makers.base_layout` > `makers.templates_namespace` (dérivé en `@<ns>/admin/_layout.html.twig`) > défaut `'/admin/_layout.html.twig'`.
+
+3.4) makers.content_block
+- Type: string
+- Défaut: content
+- Effet: indique dans quel block Twig (de votre layout) les templates du bundle doivent rendre le contenu CRUD.
+  Exemples: `content`, `body`, `admin_content`.
 
 4) translations
 - Type: objet

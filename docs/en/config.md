@@ -9,6 +9,7 @@ Summary
 - makers.enabled
 - makers.templates_namespace
 - makers.base_layout
+- makers.content_block
 - translations.field_keys
 - translations.patterns
  - Per-handler YAML overrides (index_fields)
@@ -30,6 +31,7 @@ neox_crud:
     enabled: true
     templates_namespace: null
     base_layout: null
+    content_block: content
 
   translations:
     field_keys: ['label', 'placeholder']
@@ -87,6 +89,12 @@ Options details
 - Default: null
 - Effect: Explicit Twig base layout path to be used by the Maker when generating templates (e.g. `@App/admin/_layout.html.twig` or `/admin/_layout.html.twig`).
 - Precedence: CLI `--twig-base-layout` > this `makers.base_layout` > `makers.templates_namespace` (derived to `@<ns>/admin/_layout.html.twig`) > default `'/admin/_layout.html.twig'`.
+
+3.4) makers.content_block
+- Type: string
+- Default: content
+- Effect: which Twig block (from your base layout) should receive the CRUD content.
+  Examples: `content`, `body`, `admin_content`.
 
 4) translations
 - Type: object

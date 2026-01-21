@@ -1,6 +1,8 @@
 {% extends base_layout %}
 
-{% set __neox_crud_form_content %}
+{% set content_block = content_block|default('content') %}
+
+{% block neox_crud_content %}
   {% set __is_edit = entity is defined and attribute(entity, 'id') is not null %}
 
   {% set __title_key = resource ~ '.title.' ~ (__is_edit ? 'edit' : 'new') %}
@@ -19,16 +21,22 @@
       Retour à la liste
     </a>
   {{ form_end(form) }}
-{% endset %}
+{% endblock %}
 
 {% block admin_content %}
-  {{ __neox_crud_form_content }}
+  {% if content_block == 'admin_content' %}
+    {{ block('neox_crud_content') }}
+  {% endif %}
 {% endblock %}
 
 {% block body %}
-  {{ __neox_crud_form_content }}
+  {% if content_block == 'body' %}
+    {{ block('neox_crud_content') }}
+  {% endif %}
 {% endblock %}
 
 {% block content %}
-  {{ __neox_crud_form_content }}
+  {% if content_block == 'content' %}
+    {{ block('neox_crud_content') }}
+  {% endif %}
 {% endblock %}

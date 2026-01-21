@@ -39,6 +39,9 @@ abstract class AbstractDoctrineCrudHandler implements CrudHandlerInterface
      */
     private ?array $uiConfig = null;
 
+    private ?string $twigBaseLayout = null;
+    private ?string $twigContentBlock = null;
+
     public function __construct(
         protected EntityManagerInterface $em,
         protected FormFactoryInterface $formFactory,
@@ -88,6 +91,24 @@ abstract class AbstractDoctrineCrudHandler implements CrudHandlerInterface
         }
 
         return $this->indexFieldOptions;
+    }
+
+    public function getTwigBaseLayout(): ?string
+    {
+        if ($this->uiConfig === null) {
+            $this->loadIndexFieldsFromConfig();
+        }
+
+        return $this->twigBaseLayout;
+    }
+
+    public function getTwigContentBlock(): ?string
+    {
+        if ($this->uiConfig === null) {
+            $this->loadIndexFieldsFromConfig();
+        }
+
+        return $this->twigContentBlock;
     }
 
     /**
@@ -173,6 +194,7 @@ abstract class AbstractDoctrineCrudHandler implements CrudHandlerInterface
         $actions                = $root['actions']         ?? null;
         $bulkActions            = $root['bulk_actions']    ?? null;
         $toolbarButtons         = $root['toolbar_buttons'] ?? null;
+        $twig                   = $root['twig']            ?? null;
         $appendDefaultRowAction = isset($root['append_default_actions']) ? (bool) $root['append_default_actions'] : false;
         $liveTable              = null;
         $defaultPerPage         = isset($root['default_per_page']) && is_numeric($root['default_per_page']) ? (int) $root['default_per_page'] : null;
@@ -219,6 +241,15 @@ abstract class AbstractDoctrineCrudHandler implements CrudHandlerInterface
 
         if ($defaultPerPage !== null && $defaultPerPage < 1) {
             $defaultPerPage = null;
+        }
+
+        if (is_array($twig)) {
+            if (isset($twig['base_layout']) && is_string($twig['base_layout']) && $twig['base_layout'] !== '') {
+                $this->twigBaseLayout = $twig['base_layout'];
+            }
+            if (isset($twig['content_block']) && is_string($twig['content_block']) && $twig['content_block'] !== '') {
+                $this->twigContentBlock = $twig['content_block'];
+            }
         }
         if ($maxPerPage !== null && $maxPerPage < 1) {
             $maxPerPage = null;
