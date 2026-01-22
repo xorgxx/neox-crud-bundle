@@ -379,6 +379,7 @@
                   <form
                     method="post"
                     action="{{ url }}"
+                    data-neox-crud-ajax-delete
                     style="display:inline-flex; margin:0; align-items:center"
                     onsubmit="return {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};"
                   >
@@ -413,6 +414,7 @@
             </a>
             <form method="post"
                   action="{{ path('neox_crud_admin_crud_delete', { resource: resource, id: id }) }}"
+                  data-neox-crud-ajax-delete
                   style="display:inline-flex; margin:0; align-items:center"
                   onsubmit="return confirm('Confirmer la suppression ?');">
               <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ idKey) }}">
@@ -568,6 +570,38 @@
       }
  
       modalBody.innerHTML = await res.text();
+    });
+
+    root.addEventListener('submit', async (e) => {
+      const form = e.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      if (!form.matches('form[data-neox-crud-ajax-delete]')) return;
+      if (e.defaultPrevented) return;
+
+      e.preventDefault();
+
+      const action = form.getAttribute('action') || window.location.href;
+      const method = (form.getAttribute('method') || 'POST').toUpperCase();
+      const data = new FormData(form);
+
+      const res = await fetch(action, {
+        method,
+        body: data,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      });
+
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const json = await res.json();
+        if (json && json.success) {
+          if (refreshTrigger) {
+            refreshTrigger.click();
+          }
+          return;
+        }
+      }
+
+      window.location.reload();
     });
   })();
   </script>

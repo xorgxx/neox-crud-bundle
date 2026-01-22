@@ -279,13 +279,29 @@ class GenericCrudController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        if ($this->isCsrfTokenValid('delete_' . $id, (string) $request->request->get('_token'))) {
-            $handler->preDelete($entity, $request);
-            $handler->delete($entity);
-            $this->addFlash('success', 'Suppression effectuée.');
+        $token = (string) $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('delete_' . $id, $token)) {
+            [$route, $params] = $handler->getRedirectAfterDelete($entity);
+
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse([
+                    'success' => false,
+                    'error' => 'Invalid CSRF token.',
+                ], 403);
+            }
+
+            return $this->redirectToRoute($route, $params);
         }
 
+        $handler->preDelete($entity, $request);
+        $handler->delete($entity);
+        $this->addFlash('success', 'Suppression effectuée.');
+
         [$route, $params] = $handler->getRedirectAfterDelete($entity);
+
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse(['success' => true]);
+        }
 
         return $this->redirectToRoute($route, $params);
     }
