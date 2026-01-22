@@ -86,6 +86,84 @@ Le handler doit :
 
 ---
 
+4.6) Garder la main sur le formulaire (validation, champs, options)
+
+Le contrôleur ne construit jamais le formulaire “en dur”.
+Il appelle systématiquement votre handler via `createForm($entity)`.
+
+Par défaut (dans `AbstractDoctrineCrudHandler`), `createForm()` fait simplement :
+
+```php
+public function createForm(object $entity): FormInterface
+{
+    return $this->formFactory->create($this->getFormType(), $entity);
+}
+```
+
+Si vous avez besoin de garder la main sur :
+- les groupes de validation,
+- des attributs HTML sur le `<form>`,
+- des options dynamiques (mode admin/public, création/édition, etc.),
+
+vous pouvez surcharger `createForm()` dans votre handler.
+
+Exemple : forcer des groupes de validation
+
+```php
+public function createForm(object $entity): FormInterface
+{
+    return $this->formFactory->create($this->getFormType(), $entity, [
+        'validation_groups' => ['Default', 'admin'],
+    ]);
+}
+```
+
+Explications
+
+- `validation_groups` : indique à Symfony Validator quels groupes de contraintes appliquer.
+  Les contraintes définies avec `groups: ['admin']` seront validées uniquement si vous ajoutez ce groupe.
+- `attr` : permet d’ajouter des attributs HTML au tag `<form>` (classes, `novalidate`, data-attributes, etc.).
+- options “custom” : vous pouvez inventer vos propres options et les utiliser dans votre `FormType` pour afficher/retirer des champs.
+
+Exemple : option custom `mode` consommée par le `FormType`
+
+```php
+public function createForm(object $entity): FormInterface
+{
+    return $this->formFactory->create($this->getFormType(), $entity, [
+        'mode' => 'admin',
+    ]);
+}
+```
+
+Dans votre `FormType`, il faut déclarer l’option :
+
+```php
+public function configureOptions(OptionsResolver $resolver): void
+{
+    $resolver->setDefaults([
+        'mode' => null,
+    ]);
+}
+```
+
+Puis l’utiliser dans `buildForm()` :
+
+```php
+public function buildForm(FormBuilderInterface $builder, array $options): void
+{
+    $builder->add('name');
+
+    if ($options['mode'] === 'admin') {
+        $builder->add('internalCode');
+    }
+}
+```
+
+Note
+
+- Pour garder la main sur l’ordre/la mise en page des champs, vous pouvez aussi surcharger les templates Twig du bundle (`@NeoxCrud/neox_crud/form.html.twig` et `@NeoxCrud/neox_crud/form_modal.html.twig`) et rendre les champs avec `form_row()` au lieu de `form_widget(form)`.
+
 5) LiveTable vs rendu classique
 
 Le contrôleur peut rendre l’index en LiveTable si :

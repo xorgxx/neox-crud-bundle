@@ -86,6 +86,84 @@ Your handler must:
 
 ---
 
+4.6) Keeping control over the form (validation, fields, options)
+
+The controller never builds the form “by itself”.
+It always delegates to your handler through `createForm($entity)`.
+
+By default (in `AbstractDoctrineCrudHandler`), `createForm()` is simply:
+
+```php
+public function createForm(object $entity): FormInterface
+{
+    return $this->formFactory->create($this->getFormType(), $entity);
+}
+```
+
+If you need to keep control over:
+- validation groups,
+- HTML attributes on the `<form>` tag,
+- dynamic options (admin/public mode, create/edit mode, etc.),
+
+override `createForm()` in your handler.
+
+Example: enforce validation groups
+
+```php
+public function createForm(object $entity): FormInterface
+{
+    return $this->formFactory->create($this->getFormType(), $entity, [
+        'validation_groups' => ['Default', 'admin'],
+    ]);
+}
+```
+
+Explanation
+
+- `validation_groups`: tells Symfony Validator which constraint groups to apply.
+  Constraints defined with `groups: ['admin']` will only be validated when this group is enabled.
+- `attr`: adds HTML attributes to the `<form>` tag (CSS classes, `novalidate`, data-attributes, etc.).
+- “custom” options: you can define your own options and use them in your `FormType` to add/remove fields.
+
+Example: custom `mode` option consumed by the `FormType`
+
+```php
+public function createForm(object $entity): FormInterface
+{
+    return $this->formFactory->create($this->getFormType(), $entity, [
+        'mode' => 'admin',
+    ]);
+}
+```
+
+In your `FormType`, declare the option:
+
+```php
+public function configureOptions(OptionsResolver $resolver): void
+{
+    $resolver->setDefaults([
+        'mode' => null,
+    ]);
+}
+```
+
+Then use it in `buildForm()`:
+
+```php
+public function buildForm(FormBuilderInterface $builder, array $options): void
+{
+    $builder->add('name');
+
+    if ($options['mode'] === 'admin') {
+        $builder->add('internalCode');
+    }
+}
+```
+
+Note
+
+- To fully control field order/layout, you can also override the bundle Twig templates (`@NeoxCrud/neox_crud/form.html.twig` and `@NeoxCrud/neox_crud/form_modal.html.twig`) and render fields with `form_row()` instead of `form_widget(form)`.
+
 5) LiveTable vs classic rendering
 
 The controller can render the index as a LiveTable if:
