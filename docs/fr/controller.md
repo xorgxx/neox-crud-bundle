@@ -96,6 +96,21 @@ Sinon, il rend l’index “classique”.
 
 ---
 
+5.1) Intégrer la LiveTable dans n’importe quelle page Twig
+
+La LiveTable est un **Symfony UX LiveComponent**. Vous pouvez l’utiliser hors du contrôleur générique, dans n’importe quel template Twig, tant que Symfony UX LiveComponent est installé et que vos assets (Stimulus) sont chargés.
+
+Exemple :
+```twig
+<twig:neox_crud_index_table resource="product" />
+```
+
+Notes
+- `resource` doit correspondre au nom de ressource renvoyé par votre handler (`CrudHandlerInterface::getName()`).
+- Si aucun handler ne correspond, `CrudHandlerFactory` lèvera une exception.
+
+---
+
 6) Utiliser le CRUD sans LiveTable (et même sans les templates du bundle)
 
 Le point clé : le handler encapsule la logique CRUD.
