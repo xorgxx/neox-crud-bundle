@@ -1,0 +1,14 @@
+{% set __is_edit = entity is defined and attribute(entity, 'id') is not null %}
+
+{% set __title_key = resource ~ '.title.' ~ (__is_edit ? 'edit' : 'new') %}
+{% set __title_val = __title_key|trans({}, resource) %}
+
+<h1 class="h5 mb-3">
+  {{ __title_val != __title_key ? __title_val : (__is_edit ? 'Modifier' : 'Nouveau') }}
+</h1>
+
+{{ form_start(form, { action: app.request.uri, attr: { 'data-neox-crud-modal-form': '1' } }) }}
+  {{ form_widget(form) }}
+
+  <button class="btn btn-primary">Enregistrer</button>
+{{ form_end(form) }}

@@ -6,6 +6,7 @@ namespace Neox\NeoxCrudBundle\Controller;
 
 use Neox\NeoxCrudBundle\Crud\CrudHandlerFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -142,12 +143,18 @@ class GenericCrudController extends AbstractController
         $entity  = $handler->createEntity();
         $form    = $handler->createForm($entity);
 
+        $isModal = $request->query->getBoolean('_modal') || $request->isXmlHttpRequest();
+
         if ($handler->handleForm($request, $form)) {
             $handler->preCreate($entity, $request);
             $handler->save($entity);
             $this->addFlash('success', 'Création effectuée.');
 
             [$route, $params] = $handler->getRedirectAfterCreate($entity);
+
+            if ($isModal) {
+                return new JsonResponse(['success' => true]);
+            }
 
             return $this->redirectToRoute($route, $params);
         }
@@ -174,6 +181,14 @@ class GenericCrudController extends AbstractController
             if (\is_string($handlerContentBlock) && $handlerContentBlock !== '') {
                 $contentBlock = $handlerContentBlock;
             }
+        }
+
+        if ($isModal) {
+            return $this->render('@NeoxCrud/neox_crud/form_modal.html.twig', [
+                'form'     => $form->createView(),
+                'entity'   => $entity,
+                'resource' => $resource,
+            ]);
         }
 
         return $this->render('@NeoxCrud/neox_crud/form.html.twig', [
@@ -197,12 +212,18 @@ class GenericCrudController extends AbstractController
 
         $form = $handler->createForm($entity);
 
+        $isModal = $request->query->getBoolean('_modal') || $request->isXmlHttpRequest();
+
         if ($handler->handleForm($request, $form)) {
             $handler->preUpdate($entity, $request);
             $handler->save($entity);
             $this->addFlash('success', 'Mise à jour effectuée.');
 
             [$route, $params] = $handler->getRedirectAfterUpdate($entity);
+
+            if ($isModal) {
+                return new JsonResponse(['success' => true]);
+            }
 
             return $this->redirectToRoute($route, $params);
         }
@@ -229,6 +250,14 @@ class GenericCrudController extends AbstractController
             if (\is_string($handlerContentBlock) && $handlerContentBlock !== '') {
                 $contentBlock = $handlerContentBlock;
             }
+        }
+
+        if ($isModal) {
+            return $this->render('@NeoxCrud/neox_crud/form_modal.html.twig', [
+                'form'     => $form->createView(),
+                'entity'   => $entity,
+                'resource' => $resource,
+            ]);
         }
 
         return $this->render('@NeoxCrud/neox_crud/form.html.twig', [

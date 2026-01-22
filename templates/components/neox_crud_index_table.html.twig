@@ -84,7 +84,12 @@
             </div>
           {% endif %}
 
-          <a href="{{ path('neox_crud_admin_crud_new', { resource: resource }) }}" class="btn btn-sm btn-primary">
+          <a
+            href="{{ path('neox_crud_admin_crud_new', { resource: resource, _modal: 1 }) }}"
+            class="btn btn-sm btn-primary"
+            data-neox-crud-modal
+            data-neox-crud-modal-title="Nouveau"
+          >
             {% set __new_key = resource ~ '.action.new' %}
             {% set __new_val = __new_key|trans({}, resource) %}
             {{ __new_val != __new_key ? __new_val : 'Nouveau' }}
@@ -92,10 +97,6 @@
           {% if toolbarButtons is defined and toolbarButtons is not empty %}
             {% for btn in toolbarButtons %}
               {% set isGet = (btn.method|default('GET')|upper) == 'GET' %}
-              {% set turbo = btn.turbo|default({}) %}
-              {% set turboEnabled = turbo.enabled is defined ? turbo.enabled : null %}
-              {% set turboFrame = turbo.frame|default(null) %}
-              {% set turboConfirm = turbo.confirm|default(btn.confirm|default(null)) %}
               {% if btn.route is defined and btn.route %}
                 {% set params = (btn.params|default({})) %}
                 {% set url = path(btn.route, params|merge({ resource: resource })) %}
@@ -109,9 +110,6 @@
                   href="{{ url }}"
                   class="btn btn-sm {{ btn.class|default('btn-outline-secondary') }}"
                   title="{{ btn.label }}"
-                  {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
-                  {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
-                  {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
                 >
                   {% if btn.icon %}<i class="{{ btn.icon }}"></i>{% endif %} {{ btn.label }}
                 </a>
@@ -128,10 +126,6 @@
   <div class="d-flex gap-2 align-items-center mb-3">
     {% for a in bulkActions %}
       {% set isGet = (a.method|default('GET')|upper) == 'GET' %}
-      {% set turbo = a.turbo|default({}) %}
-      {% set turboEnabled = turbo.enabled is defined ? turbo.enabled : null %}
-      {% set turboFrame = turbo.frame|default(null) %}
-      {% set turboConfirm = turbo.confirm is defined ? turbo.confirm : ((a.confirm is defined) ? a.confirm : null) %}
 
       {% if a.route is defined and a.route %}
         {% set params = (a.params|default({})) %}
@@ -147,9 +141,6 @@
           href="{{ url }}"
           class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}"
           title="{{ a.label }}"
-          {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
-          {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
-          {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
         >
           {% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}
         </a>
@@ -158,10 +149,7 @@
           method="post"
           action="{{ url }}"
           style="display:inline-block"
-          onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
-          {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
-          {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
-          {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+          onsubmit="return {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};"
         >
           {% if a.route == 'neox_crud_admin_crud_custom' and a.params.action is defined %}
             <input type="hidden" name="_token" value="{{ csrf_token('custom_' ~ resource ~ '_0_' ~ a.params.action) }}">
@@ -367,10 +355,6 @@
           {% if actions is not empty %}
             {% for a in actions %}
               {% set isGet = (a.method|default('GET')|upper) == 'GET' %}
-              {% set turbo = a.turbo|default({}) %}
-              {% set turboEnabled = turbo.enabled is defined ? turbo.enabled : null %}
-              {% set turboFrame = turbo.frame|default(null) %}
-              {% set turboConfirm = turbo.confirm is defined ? turbo.confirm : ((a.confirm is defined) ? a.confirm : null) %}
               {% if a.route is defined and a.route %}
                 {% set params = (a.params|default({})) %}
                 {% set url = path(a.route, params|merge({ resource: resource })) %}
@@ -385,9 +369,8 @@
                   href="{{ url }}"
                   class="btn btn-sm {{ a.class|default('btn-outline-secondary') }}"
                   title="{{ a.label }}"
-                  {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
-                  {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
-                  {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+                  data-neox-crud-modal
+                  data-neox-crud-modal-title="{{ a.label }}"
                 >
                   {% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}
                 </a>
@@ -397,10 +380,7 @@
                     method="post"
                     action="{{ url }}"
                     style="display:inline-flex; margin:0; align-items:center"
-                    onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
-                    {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
-                    {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
-                    {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+                    onsubmit="return {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};"
                   >
                     <input type="hidden" name="_token" value="{{ csrf_token('delete_' ~ id) }}">
                     <button class="btn btn-sm {{ a.class|default('btn-danger') }}" data-label="{{ a.label }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
@@ -410,10 +390,7 @@
                     method="post"
                     action="{{ url }}"
                     style="display:inline-flex; margin:0; align-items:center"
-                    onsubmit="if (!( {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }} )) { return false; } if (typeof event !== 'undefined' && event) { event.preventDefault(); } var f=this; var b=f.querySelector('button[type=submit],button'); if(b){ b.disabled=true; b.innerHTML='<span class=&quot;spinner-border spinner-border-sm me-1&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;></span>'+(b.dataset.label||b.textContent); } window.setTimeout(function(){ f.submit(); }, 0); return false;"
-                    {% if turboEnabled is same as(false) %}data-turbo="false"{% endif %}
-                    {% if turboFrame %}data-turbo-frame="{{ turboFrame }}"{% endif %}
-                    {% if turboConfirm %}data-turbo-confirm="{{ turboConfirm }}"{% endif %}
+                    onsubmit="return {{ (a.confirm is defined and a.confirm) ? 'confirm(\'' ~ a.confirm ~ '\')' : 'true' }};"
                   >
                     <input type="hidden" name="_token" value="{{ csrf_token('custom_' ~ resource ~ '_' ~ id ~ '_' ~ a.params.action) }}">
                     <button class="btn btn-sm {{ a.class|default('btn-secondary') }}" data-label="{{ a.label }}">{% if a.icon %}<i class="{{ a.icon }}"></i>{% endif %} {{ a.label }}</button>
@@ -424,7 +401,12 @@
               {% endif %}
             {% endfor %}
           {% else %}
-            <a href="{{ path('neox_crud_admin_crud_edit', { resource: resource, id: id }) }}" class="btn btn-sm btn-secondary" >
+            <a
+              href="{{ path('neox_crud_admin_crud_edit', { resource: resource, id: id, _modal: 1 }) }}"
+              class="btn btn-sm btn-secondary"
+              data-neox-crud-modal
+              data-neox-crud-modal-title="Éditer"
+            >
               {% set __edit_key = resource ~ '.action.edit' %}
               {% set __edit_val = __edit_key|trans({}, resource) %}
               {{ __edit_val != __edit_key ? __edit_val : 'Éditer' }}
@@ -481,5 +463,113 @@
       </div>
     </div>
   </div>
+ 
+  <button
+    type="button"
+    class="d-none"
+    data-action="live#action"
+    data-live-action-param="refresh"
+    data-neox-crud-refresh-trigger
+  ></button>
+ 
+  <div class="modal fade" tabindex="-1" aria-hidden="true" data-neox-crud-modal-root>
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" data-neox-crud-modal-title></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" data-neox-crud-modal-body></div>
+      </div>
+    </div>
+  </div>
+ 
+  <script>
+  (() => {
+    const root = document.currentScript?.closest('[data-live-id]') || document.currentScript?.parentElement;
+    if (!root) {
+      return;
+    }
+ 
+    const modalRoot = root.querySelector('[data-neox-crud-modal-root]');
+    if (!modalRoot) {
+      return;
+    }
+ 
+    const modalBody = modalRoot.querySelector('[data-neox-crud-modal-body]');
+    const modalTitle = modalRoot.querySelector('[data-neox-crud-modal-title]');
+    const refreshTrigger = root.querySelector('[data-neox-crud-refresh-trigger]');
+ 
+    const getModal = () => {
+      if (!window.bootstrap || !window.bootstrap.Modal) {
+        return null;
+      }
+      return window.bootstrap.Modal.getOrCreateInstance(modalRoot);
+    };
+ 
+    const setLoading = () => {
+      modalBody.innerHTML = '<div class="py-5 text-center"><div class="spinner-border" role="status" aria-hidden="true"></div></div>';
+    };
+ 
+    const openUrl = async (url, title) => {
+      modalTitle.textContent = title || '';
+      setLoading();
+
+      modalRoot.dataset.neoxCrudModalUrl = url;
+ 
+      const m = getModal();
+      if (m) {
+        m.show();
+      }
+ 
+      const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      modalBody.innerHTML = await res.text();
+    };
+ 
+    root.addEventListener('click', (e) => {
+      const a = e.target.closest('a[data-neox-crud-modal]');
+      if (!a) return;
+      e.preventDefault();
+      openUrl(a.getAttribute('href'), a.dataset.neoxCrudModalTitle || a.getAttribute('title') || '');
+    });
+ 
+    modalRoot.addEventListener('submit', async (e) => {
+      const form = e.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      if (!form.matches('[data-neox-crud-modal-form]')) return;
+      e.preventDefault();
+ 
+      const formActionAttr = form.getAttribute('action');
+      const action = (formActionAttr && formActionAttr.trim() !== '')
+        ? formActionAttr
+        : (modalRoot.dataset.neoxCrudModalUrl || window.location.href);
+      const method = (form.getAttribute('method') || 'POST').toUpperCase();
+      const data = new FormData(form);
+ 
+      const res = await fetch(action, {
+        method,
+        body: data,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      });
+ 
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const json = await res.json();
+        if (json && json.success) {
+          const m = getModal();
+          if (m) {
+            m.hide();
+          }
+          if (refreshTrigger) {
+            refreshTrigger.click();
+          }
+          return;
+        }
+      }
+ 
+      modalBody.innerHTML = await res.text();
+    });
+  })();
+  </script>
 </div>
 

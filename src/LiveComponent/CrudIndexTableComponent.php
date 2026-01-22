@@ -367,4 +367,9 @@ final class CrudIndexTableComponent
         $this->search = '';
         $this->page = 1;
     }
+
+    #[LiveAction]
+    public function refresh(): void
+    {
+    }
 }
