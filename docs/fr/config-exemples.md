@@ -74,17 +74,7 @@ neox_crud:
 
 8) Activer la LiveTable (pagination et position)
 
-Configuration globale (config/packages/neox_crud.yaml) :
-```yaml
-neox_crud:
-  live_table:
-    enabled: true
-    default_per_page: 10
-    max_per_page: 50
-    pagination_position: all # top | bottom | all
-```
-
-Surcharge par handler (YAML du handler, forme unifiée) :
+Configuration par handler (YAML du handler, forme unifiée) :
 ```yaml
 neox_crud:
   live_table:
@@ -93,6 +83,9 @@ neox_crud:
     max_per_page: 4
     pagination_position: top
 ```
+
+Astuce
+- Vous pouvez aussi générer le `config.yaml` du handler avec la LiveTable déjà activée via l’option Maker `--enable-live-table`.
 
 Voir aussi
 - docs/fr/config.md — Référence complète de configuration

@@ -63,6 +63,12 @@ Comportement
 - Crée également un fichier `config.yaml` commenté à côté du handler avec les options supportées. Le fichier inclut la liste des champs Doctrine détectés et une ligne `index_fields` pré-remplie (commentée) avec tous ces champs pour un démarrage rapide.
   La clé `index_fields` supporte aussi des attributs par champ (optionnels) comme `format`, `boolean_icon`, `type: image`, et `voters`. Voir docs/fr/config.md → « Attributs avancés ». Les templates continuent d’utiliser `fields` (noms) et peuvent lire `field_options` pour les attributs.
 
+LiveTable (activation)
+- La LiveTable s’active par ressource via le `config.yaml` du handler.
+- Option CLI : `--enable-live-table` génère le `config.yaml` du handler avec le bloc `neox_crud.live_table` déjà activé.
+- Sinon, décommentez le bloc `neox_crud.live_table` dans le `config.yaml` du handler.
+- Voir docs/fr/config.md → « Activer la LiveTable ».
+
 Exemple
 ```
 php bin/console make:crud-handler product App\Entity\Product App\Form\ProductType
@@ -100,6 +106,11 @@ Comportement
   - un fichier `config.yaml` commenté: `src/Crud/Handle/<Entity>/config.yaml`
   - (aucun template Twig n’est généré ; le bundle fournit des templates par défaut via `@NeoxCrud`)
   - (optionnel) un YAML de traduction pour les champs, aligné sur neox_crud.translations.field_keys
+
+LiveTable (activation)
+- La LiveTable s’active par ressource via le `config.yaml` du handler.
+- Option CLI : `--enable-live-table` génère le `config.yaml` du handler avec le bloc `neox_crud.live_table` déjà activé.
+- Sinon, décommentez le bloc `neox_crud.live_table` dans le `config.yaml` du handler.
 
 Notes
 - Le FormType généré devine désormais automatiquement les types de champs Symfony à partir des types Doctrine. Quand le type est reconnu, le champ est déclaré avec le FQCN du FormType sous forme de chaîne; sinon, le type est laissé à null pour laisser Symfony deviner à l’exécution. Les UUID/GUID utilisent TextType par défaut pour éviter des dépendances supplémentaires.

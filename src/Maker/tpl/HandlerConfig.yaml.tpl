@@ -9,51 +9,42 @@
 #  - <HandlerDir>/<?= $class_name ?>.yaml
 #  - <HandlerDir>/config/crud.yaml
 #
-# Currently supported keys (runtime):
-#  - index_fields: [<list of field names>]
-#    Choose which entity fields appear in the index table.
+# Quick start
+# ----------
+# 1) Choose which fields appear in the index table
 #    If absent, the handler defaults to all Doctrine fields except 'id'.
 #
-#    Advanced (optional): you can attach per-field attributes to control rendering
-#    or visibility. Three equivalent syntaxes are supported:
+#    Recommended syntax (more explicit, easy to extend): list of maps
+#    You can still use a simple list of strings (BC).
 #
-#    1) Simple list (BC):
-#       index_fields: ['title', 'email', 'enabled', 'createdAt']
+#    index_fields:
+#      - { name: 'text', sortable: true, searchable: true }
+#      - { name: 'roles' }
+#      - { name: 'createdAt', format: 'Y-m-d' }
 #
-#    2) List of maps with a "name" (or "field") key:
-#       index_fields:
-#         - { name: 'title' }
-#         - { name: 'email', format: 'text' }
-#         - { name: 'enabled', boolean_icon: true }   # render ✓/✗ icons
-#         - { name: 'image', type: 'image', class: 'thumb-48' } # render <img>
-#         - { name: 'createdAt', format: 'Y-m-d H:i' } # date/datetime format
-#         - { name: 'roles', voters: ['ROLE_ADMIN'] }  # visible only if voter granted
+#    Notes about these options:
+#    - sortable/searchable are mainly used by the LiveTable query builder.
+#    - query_path can be used for relations (ex: user.email)
+#    - join can be 'left' (default) or 'inner'
 #
-#    3) Associative map: field name as key, options as value:
-#       index_fields:
-#         title: ~
-#         email: { format: 'text' }
-#         enabled: { boolean_icon: true }
-#         image: { type: 'image', class: 'thumb-48' }
-#         createdAt: { format: 'Y-m-d' }
-#         roles: { voters: ['ROLE_ADMIN', 'ROLE_MANAGER'] }
+# 2) Enable LiveTable for this handler (opt‑in)
+#    Uncomment the block printed below to enable the interactive index table for THIS resource.
+#    You can also generate it already enabled with the Maker option --enable-live-table.
 #
-# Notes:
-#  - You can also nest the option under a root key `neox_crud:` if you prefer.
-#  - Additional optional UI keys are supported (opt‑in, BC safe):
+# 3) Optional UI configuration (opt‑in, BC safe)
 #    - actions: per-row action buttons in the index list
 #    - bulk_actions: actions for the current selection (if your UI implements it)
 #    - toolbar_buttons: buttons shown near the "New" button in the index view
-#  - LiveTable options (opt‑in, BC safe) can also be configured here:
-#    - live_table.enabled: enable/disable live index for this resource
-#    - live_table.default_per_page: default page size
-#    - live_table.max_per_page: maximum allowed page size
-#    - live_table.pagination_position: top|bottom|all
-#  - Keep comments or remove them; YAML ignores commented lines.
+#
+# Notes
+# -----
+# - You can also define keys at the root (flat) instead of nesting under neox_crud.
+# - YAML ignores commented lines: keep comments or remove them freely.
 #
 <?php
 // If the Maker provided the list of Doctrine fields, suggest them
 $available_fields = $available_fields ?? [];
+$enable_live_table = (bool) ($enable_live_table ?? false);
 if (is_array($available_fields) && $available_fields !== []) {
     $list = array_values(array_filter(array_map(static fn($f) => is_string($f) ? $f : null, $available_fields)));
     $quoted = array_map(static fn(string $f) => "'{$f}'", $list);
@@ -63,26 +54,55 @@ if (is_array($available_fields) && $available_fields !== []) {
         echo '# - ' . $f . "\n";
     }
     echo "#\n";
-    echo "# Quick start — uncomment to use all fields as-is:\n";
-    echo '# index_fields: [' . $joined . "]\n#\n";
+    echo "# Quick start — uncomment to use all fields as-is (simple list, BC):\n";
+    echo '# index_fields: [' . $joined . "]\n";
+    echo "#\n";
+    echo "# Example (recommended, identified fields):\n";
+    echo "# index_fields:\n";
+    $i = 0;
+    foreach ($list as $f) {
+        $prefix = $i === 0 ? 'text' : $f;
+        if ($i === 0) {
+            echo "#   - { name: '" . $f . "', sortable: true, searchable: true }\n";
+        } else {
+            echo "#   - { name: '" . $f . "' }\n";
+        }
+        $i++;
+    }
+    echo "#\n";
 } else {
-    echo "# Example (flat key):\n";
+    echo "# Example (simple list, BC):\n";
     echo "# index_fields: ['id', 'name', 'createdAt']\n";
+    echo "#\n";
+    echo "# Example (recommended, identified fields):\n";
+    echo "# index_fields:\n";
+    echo "#   - { name: 'id', sortable: true }\n";
+    echo "#   - { name: 'name', sortable: true, searchable: true }\n";
+    echo "#   - { name: 'createdAt', format: 'Y-m-d' }\n";
     echo "#\n";
 }
 ?>
 
+<?php
+$prefix = $enable_live_table ? '' : '# ';
+echo "# LiveTable (per handler)\n";
+echo "# --------------------\n";
+echo $prefix . "neox_crud:\n";
+echo $prefix . "  live_table:\n";
+echo $prefix . "    enabled: true\n";
+echo $prefix . "    pagination_position: top   # top | bottom | all\n";
+echo $prefix . "    default_per_page: 4\n";
+echo $prefix . "    max_per_page: 4\n";
+echo "#\n";
+?>
 
 
-# Example (nested under neox_crud):
+
+# UI examples (nested under neox_crud)
+# -------------------------------
 # neox_crud:
-#   live_table:
-#     enabled: true
-#     default_per_page: 4
-#     max_per_page: 4
-#     pagination_position: all # top | bottom | all
-#   index_fields: ['id', 'name', 'createdAt']
 #   append_default_actions: true
+#
 #   # Per-row actions (index table column)
 #   actions:
 #     - name: edit

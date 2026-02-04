@@ -13,6 +13,7 @@ use Symfony\Bundle\MakerBundle\Maker\AbstractMaker;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 
 /**
  * make:neox:crud-handler
@@ -54,6 +55,7 @@ class MakeCrudHandler extends AbstractMaker
             ->addArgument('resource', InputArgument::REQUIRED, 'Nom de la ressource (ex: product)')
             ->addArgument('entity-class', InputArgument::REQUIRED, 'Classe de l’entité (FQCN ou raccourci, ex: App\\Entity\\Product ou Product)')
             ->addArgument('form-type-class', InputArgument::REQUIRED, 'Classe du FormType (FQCN, ex: App\\Form\\ProductType)')
+            ->addOption('enable-live-table', null, InputOption::VALUE_NONE, 'Active la LiveTable dans le config.yaml du handler généré (activation par ressource).')
         ;
     }
 
@@ -67,6 +69,8 @@ class MakeCrudHandler extends AbstractMaker
         $resource      = (string) $input->getArgument('resource');
         $entityClass   = (string) $input->getArgument('entity-class');
         $formTypeClass = (string) $input->getArgument('form-type-class');
+
+        $enableLiveTable = (bool) $input->getOption('enable-live-table');
 
         $resourceSlug   = strtolower($resource);
         $resourceStudly = ucfirst($resourceSlug);
@@ -115,6 +119,7 @@ class MakeCrudHandler extends AbstractMaker
                     'class_name' => $handlerClassNameDetails->getShortName(),
                     // Suggest all detected entity fields in comments for quick start
                     'available_fields' => $fieldNames,
+                    'enable_live_table' => $enableLiveTable,
                 ]
             );
         }
@@ -123,5 +128,11 @@ class MakeCrudHandler extends AbstractMaker
 
         $io->success(sprintf('Handler CRUD généré : %s', $handlerClassNameDetails->getFullName()));
         $io->text('Pense à créer les templates Twig : ' . $templatePrefix . '/index.html.twig et form.html.twig');
+
+        if ($enableLiveTable) {
+            $io->text('LiveTable: activée dans le config.yaml du handler (option --enable-live-table).');
+        } else {
+            $io->text('LiveTable: pour l’activer, décommentez le bloc neox_crud.live_table dans le config.yaml du handler (ou relancez avec --enable-live-table).');
+        }
     }
 }

@@ -149,6 +149,26 @@ Détails des options
   - `bottom` : pagination uniquement en dessous du tableau
   - `all` : pagination en haut et en bas
 
+Activer la LiveTable
+
+La LiveTable est une fonctionnalité opt-in.
+
+Activation par handler (une ressource)
+
+Dans le YAML à côté de votre handler (ex: `src/Crud/Handler/ProductCrudHandler/config.yaml`) :
+
+```yaml
+neox_crud:
+  live_table:
+    enabled: true
+    pagination_position: top   # top | bottom | all
+    default_per_page: 4
+    max_per_page: 4
+```
+
+Remarque
+- Vous pouvez aussi générer ce bloc déjà activé via la CLI : `make:neox:crud-handler --enable-live-table` ou `make:neox:crud-maker --enable-live-table`.
+
 6) Surcharges YAML par handler (index_fields)
 - Type: basé sur fichier (optionnel)
 - Défaut: non utilisé
@@ -158,6 +178,41 @@ Emplacement (premier trouvé l’emporte), relatif au fichier de votre classe ha
 - `src/Crud/Handler/ProductCrudHandler/config.yaml`
 - `src/Crud/Handler/ProductCrudHandler/ProductCrudHandler.yaml`
   - `src/Crud/Handler/ProductCrudHandler/config/crud.yaml`
+
+Formats supportés
+
+Vous pouvez déclarer `index_fields` sous plusieurs formes (rétrocompatibles) :
+
+1) Liste simple (BC)
+```yaml
+index_fields: ['id', 'name', 'createdAt']
+```
+
+2) Liste de maps “identifiées” (recommandé)
+```yaml
+index_fields:
+  - { name: 'name', sortable: true, searchable: true }
+  - { name: 'roles' }
+  - { name: 'createdAt', format: 'Y-m-d' }
+```
+
+3) Map associative (champ => options)
+```yaml
+index_fields:
+  name: { sortable: true, searchable: true }
+  roles: ~
+  createdAt: { format: 'Y-m-d' }
+```
+
+Options utiles (surtout pour la LiveTable)
+- `sortable` (bool) : autorise le tri sur cette colonne (LiveTable)
+- `searchable` (bool) : inclut le champ dans la recherche texte (LiveTable)
+- `query_path` (string) : chemin DQL, utile pour les relations (ex: `user.email`)
+- `join` (string) : `left` (défaut) ou `inner` (si `query_path` traverse des relations)
+- `label` (string) : libellé affiché de la colonne
+
+Remarque
+- Les options `sortable/searchable/query_path/join` sont exploitées par le query builder de la LiveTable (UX LiveComponent). En mode index “classique”, elles peuvent être ignorées selon vos templates.
 
 6.1) Actions UI par handler (opt-in)
 - Type : basé fichier (optionnel)

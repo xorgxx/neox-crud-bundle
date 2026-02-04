@@ -218,7 +218,9 @@ class GenericCrudController extends AbstractController
             $handler->preUpdate($entity, $request);
             $handler->save($entity);
             $this->addFlash('success', 'Mise à jour effectuée.');
-
+            $this->addFlash('info', 'Mise à jour info.');
+            $this->addFlash('success', 'Mise à jour effectuée.');
+            $this->addFlash('danger', 'Mise à jour danger.');
             [$route, $params] = $handler->getRedirectAfterUpdate($entity);
 
             if ($isModal) {

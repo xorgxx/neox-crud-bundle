@@ -8,6 +8,7 @@ NeoxCrudBundle te fournit une **colonne vertébrale CRUD** pour tous tes back-of
 
 Voir aussi
 - docs/fr/controller.md — Contrôleur CRUD générique (routes, flux, LiveTable vs classique)
+- docs/fr/forms-relations.md — Forms & relations (ManyToOne/ManyToMany/OneToOne) + hooks (createEntity/preUpdate/beforeSave/beforeDelete)
 
 
 ---

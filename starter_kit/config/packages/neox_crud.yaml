@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 neox_crud:
   translations:
     field_keys: ['label', 'placeholder', 'help']

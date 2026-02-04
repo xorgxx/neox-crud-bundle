@@ -62,6 +62,12 @@ Behavior
 - Creates a commented per-handler `config.yaml` next to the handler with a list of detected Doctrine fields and a ready-to-uncomment `index_fields` example pre-filled with those fields.
   The `index_fields` key now also supports per-field attributes (optional) such as `format`, `boolean_icon`, `type: image`, and `voters`. See docs/en/config.md → "Advanced attributes". Templates keep using `fields` (names) and may read `field_options` for attributes.
 
+LiveTable (enable)
+- LiveTable is enabled per resource via the handler `config.yaml`.
+- CLI option: `--enable-live-table` generates the handler `config.yaml` with the `neox_crud.live_table` block already enabled.
+- Otherwise, uncomment the `neox_crud.live_table` block in the handler `config.yaml`.
+- See docs/en/config.md → "Enable LiveTable".
+
 Example
 ```
 php bin/console make:crud-handler product App\Entity\Product App\Form\ProductType
@@ -98,6 +104,11 @@ Behavior
   - a Handler App\Crud\Handler\<Entity>CrudHandler
   - (no Twig templates are generated; the bundle provides defaults under `@NeoxCrud`)
   - (optional) a translation YAML for field keys aligned with neox_crud.translations.field_keys
+
+LiveTable (enable)
+- LiveTable is enabled per resource via the handler `config.yaml`.
+- CLI option: `--enable-live-table` generates the handler `config.yaml` with the `neox_crud.live_table` block already enabled.
+- Otherwise, uncomment the `neox_crud.live_table` block in the handler `config.yaml`.
 
 Notes
 - The generated FormType now auto-guesses Symfony Form Types from Doctrine types. When recognized, the field is declared with the FormType FQCN as a string; otherwise the type is left to null to let Symfony guess at runtime. UUID/GUID default to TextType to avoid extra deps.

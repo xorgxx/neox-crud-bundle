@@ -101,6 +101,10 @@ Options overview and examples:
     Example:
       php bin/console make:neox:crud-maker Product --with-controller
 
+- --enable-live-table
+    Enable LiveTable for this resource by generating the handler config.yaml with
+    neox_crud.live_table enabled (per handler, not global).
+
 Typical usages:
   php bin/console make:neox:crud-maker Product
   php bin/console make:neox:crud-maker Product --slug=catalog-item --with-trans --locale=en
@@ -130,6 +134,7 @@ HELP)
                 ->addOption('twig-namespace', null, InputOption::VALUE_OPTIONAL, 'Twig namespace to use for base layout extends (overrides configuration).', null)
                 ->addOption('twig-base-layout', null, InputOption::VALUE_OPTIONAL, 'Explicit Twig base layout path (e.g. \'@App/admin/_layout.html.twig\' or \'/admin/_layout.html.twig\'). Overrides configuration.', null)
                 ->addOption('with-controller', null, InputOption::VALUE_NONE, 'Generate a dedicated controller extending GenericCrudController (disabled by default).')
+                ->addOption('enable-live-table', null, InputOption::VALUE_NONE, 'Enable LiveTable in the generated handler config.yaml (per resource).')
                 ->addOption('with-bulk-ui', null, InputOption::VALUE_NONE, 'Include selection column + bulk actions UI in index template (disabled by default).');
     }
 
@@ -141,6 +146,8 @@ HELP)
     public function generate(InputInterface $input, ConsoleStyle $io, Generator $generator): void
     {
         $entityClassInput = (string)$input->getArgument('entity-class');
+
+        $enableLiveTable = (bool) $input->getOption('enable-live-table');
 
         if (!str_contains($entityClassInput, '\\')) {
             $entityClass = $this->doctrineHelper->getEntityNamespace() . '\\' . $entityClassInput;
@@ -336,6 +343,7 @@ HELP)
                     'class_name' => $handlerClassNameDetails->getShortName(),
                     // Suggest all detected entity fields in comments for quick start
                     'available_fields' => $fieldNames,
+                    'enable_live_table' => $enableLiveTable,
                 ]
             );
         }
@@ -404,6 +412,12 @@ HELP)
             sprintf('- /admin/%s/new', $resourceSlug),
             sprintf('- /admin/%s/{id}/edit', $resourceSlug),
         ]);
+
+        if ($enableLiveTable) {
+            $io->text('LiveTable: enabled in the generated handler config.yaml (option --enable-live-table).');
+        } else {
+            $io->text('LiveTable: to enable it, uncomment the neox_crud.live_table block in the handler config.yaml (or rerun with --enable-live-table).');
+        }
     }
 
     /**

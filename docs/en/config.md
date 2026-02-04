@@ -138,6 +138,26 @@ Options details
   - `bottom`: pagination below the table only
   - `all`: pagination both above and below
 
+Enable LiveTable
+
+LiveTable is an opt-in feature.
+
+Per-handler enable (single resource)
+
+In the YAML file next to your handler (e.g. `src/Crud/Handler/ProductCrudHandler/config.yaml`):
+
+```yaml
+neox_crud:
+  live_table:
+    enabled: true
+    pagination_position: top   # top | bottom | all
+    default_per_page: 4
+    max_per_page: 4
+```
+
+Note
+- You can also generate this block already enabled via CLI: `make:neox:crud-handler --enable-live-table` or `make:neox:crud-maker --enable-live-table`.
+
 6) Per-handler YAML overrides (index_fields)
 - Type: file-based (optional)
 - Default: not used
@@ -147,6 +167,41 @@ Location (first match wins), relative to your concrete handler class file (e.g. 
 - `src/Crud/Handler/ProductCrudHandler/config.yaml`
 - `src/Crud/Handler/ProductCrudHandler/ProductCrudHandler.yaml`
  - `src/Crud/Handler/ProductCrudHandler/config/crud.yaml`
+
+Supported formats
+
+You can declare `index_fields` using multiple backward-compatible forms:
+
+1) Simple list (BC)
+```yaml
+index_fields: ['id', 'name', 'createdAt']
+```
+
+2) “Identified” list of maps (recommended)
+```yaml
+index_fields:
+  - { name: 'name', sortable: true, searchable: true }
+  - { name: 'roles' }
+  - { name: 'createdAt', format: 'Y-m-d' }
+```
+
+3) Associative map (field => options)
+```yaml
+index_fields:
+  name: { sortable: true, searchable: true }
+  roles: ~
+  createdAt: { format: 'Y-m-d' }
+```
+
+Useful options (mainly for LiveTable)
+- `sortable` (bool): enables sorting on this column (LiveTable)
+- `searchable` (bool): includes this field in the text search (LiveTable)
+- `query_path` (string): DQL path, useful for relations (e.g. `user.email`)
+- `join` (string): `left` (default) or `inner` (when `query_path` traverses relations)
+- `label` (string): displayed column label
+
+Note
+- The `sortable/searchable/query_path/join` options are used by the LiveTable query builder (UX LiveComponent). In “classic” index mode, they may be ignored depending on your templates.
 
 6.1) Per-handler UI actions (opt-in)
 - Type: file-based (optional)
