@@ -96,6 +96,26 @@ Options details
 - Effect: which Twig block (from your base layout) should receive the CRUD content.
   Examples: `content`, `body`, `admin_content`.
 
+3.5) makers.relations
+- Type: object
+- Description: Default behavior for Doctrine relation fields when generating FormTypes.
+
+Example:
+```yaml
+neox_crud:
+  makers:
+    relations:
+      default_render: 'select'          # select|autocomplete|checkbox
+      choice_label_priority: ['name', 'title', 'label', 'id']
+      nullable_required: false
+      order: 'interleaved'              # end|interleaved|start
+      group_relations: true
+```
+
+Notes:
+- `default_render=autocomplete` requires Symfony UX Autocomplete (see the installation section in the guide).
+- To render/sort/search/filter on relations in `index_fields`, you will usually set `query_path` and `join` (e.g. `category.name`, `join: left`).
+
 4) translations
 - Type: object
 - Description: Parameters for translation keys generated/used by forms and makers.

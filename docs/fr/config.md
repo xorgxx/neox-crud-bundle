@@ -405,6 +405,28 @@ Options de rendu (liste non exhaustive) :
 - `class` : string. Classe(s) CSS supplémentaires (pour type: image).
 - `voters` ou `voter` : string ou string[] d’attributs de sécurité ; le template peut masquer un champ si non autorisé.
 
+Relations Doctrine (Maker)
+-------------------------
+
+Le Maker peut être configuré pour définir le comportement par défaut des champs de relation (ManyToOne/ManyToMany/OneToOne/OneToMany) lors de la génération des FormType.
+
+Configuration (dans `config/packages/neox_crud.yaml`) :
+
+```yaml
+neox_crud:
+  makers:
+    relations:
+      default_render: 'select'          # select|autocomplete|checkbox
+      choice_label_priority: ['name', 'title', 'label', 'id']
+      nullable_required: false
+      order: 'interleaved'              # end|interleaved|start
+      group_relations: true
+```
+
+Notes :
+- `default_render=autocomplete` nécessite Symfony UX Autocomplete (voir guide d’installation).
+- Pour afficher/filtrer/trier sur une relation dans `index_fields`, utilisez généralement `query_path` et `join` (ex: `category.name`, `join: left`).
+
 Options de requête (opt-in, table live)
 ------------------------------------
 

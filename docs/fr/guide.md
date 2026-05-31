@@ -13,6 +13,25 @@ Voir aussi
 
 ---
 
+## Symfony UX Autocomplete (optionnel)
+
+Pour utiliser le rendu `autocomplete` pour les relations dans les formulaires, installez Symfony UX Autocomplete.
+
+```bash
+composer require symfony/ux-autocomplete
+```
+
+Si votre projet utilise Symfony UX (Stimulus), pensez à activer le contrôleur côté assets selon la documentation Symfony UX.
+
+Configuration Maker (optionnel) :
+
+```yaml
+neox_crud:
+  makers:
+    relations:
+      default_render: 'autocomplete'
+```
+
 ## 13. Développement & contrôles qualité
 
 Pour contribuer au bundle lui‑même, les outils suivants sont configurés :

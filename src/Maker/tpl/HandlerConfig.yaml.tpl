@@ -27,6 +27,10 @@
 #    - query_path can be used for relations (ex: user.email)
 #    - join can be 'left' (default) or 'inner'
 #
+#    Relation example:
+#      - { name: 'category', query_path: 'category.name', join: 'left', sortable: true, searchable: true }
+#      - { name: 'author', query_path: 'author.email', join: 'left', sortable: true, searchable: true }
+#
 # 2) Enable LiveTable for this handler (opt‑in)
 #    Uncomment the block printed below to enable the interactive index table for THIS resource.
 #    You can also generate it already enabled with the Maker option --enable-live-table.

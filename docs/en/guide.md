@@ -14,6 +14,25 @@ See also
 
 ---
 
+## Symfony UX Autocomplete (optional)
+
+To use the `autocomplete` render for relation fields in forms, install Symfony UX Autocomplete.
+
+```bash
+composer require symfony/ux-autocomplete
+```
+
+If your project uses Symfony UX (Stimulus), enable the controller in your assets according to the Symfony UX documentation.
+
+Optional Maker configuration:
+
+```yaml
+neox_crud:
+  makers:
+    relations:
+      default_render: 'autocomplete'
+```
+
 13. Development and quality checks
 
 For contributors working on the bundle itself, the following quality tools are configured:
