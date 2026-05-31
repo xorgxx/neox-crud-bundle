@@ -1,3 +1,5 @@
+{% import '@NeoxCrud/macros/cell_renderers.html.twig' as renderer %}
+
 {% set pager = this.pager %}
 {% set columns = this.columns %}
 {% set toolbarButtons = this.toolbarButtons %}
@@ -333,19 +335,22 @@
         {% if granted %}
           {% set value = attribute(item, col.name) %}
 
-          <td>
-            {% if col.options.boolean_icon|default(false) %}
-              {% if value %}✓{% else %}✗{% endif %}
-            {% elseif col.options.type|default(null) == 'image' and value %}
-              <img src="{{ value }}" class="{{ col.options.class|default('') }}" alt="">
-            {% elseif col.options.format|default(null) and value is not null %}
-              {{ value|date(col.options.format) }}
-            {% elseif value is iterable %}
-              {{ value|join(', ') }}
-            {% else %}
-              {{ value }}
-            {% endif %}
-          </td>
+            <td>
+                {{ renderer.render_cell(value, col.options) }}
+            </td>
+{#          <td>#}
+{#            {% if col.options.boolean_icon|default(false) %}#}
+{#              {% if value %}✓{% else %}✗{% endif %}#}
+{#            {% elseif col.options.type|default(null) == 'image' and value %}#}
+{#              <img src="{{ value }}" class="{{ col.options.class|default('') }}" alt="">#}
+{#            {% elseif col.options.format|default(null) and value is not null %}#}
+{#              {{ value|date(col.options.format) }}#}
+{#            {% elseif value is iterable %}#}
+{#              {{ value|join(', ') }}#}
+{#            {% else %}#}
+{#              {{ value }}#}
+{#            {% endif %}#}
+{#          </td>#}
         {% endif %}
       {% endfor %}
 

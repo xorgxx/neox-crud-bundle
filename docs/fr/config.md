@@ -389,12 +389,21 @@ index_fields:
   roles: { voters: ['ROLE_ADMIN', 'ROLE_MANAGER'] }
 ```
 
-Options reconnues actuellement (liste non exhaustive) :
-- `format` : string. Pour les dates, tout format PHP (ex. `Y-m-d`). Pour du texte brut, vous pouvez mettre `text`.
-- `boolean_icon` : bool. Si `true`, affiche une icône coche/croix pour les booléens.
-- `type` : string. Par ex. `image` pour suggérer un rendu en `<img>` utilisant la valeur du champ comme URL/chemin.
-- `class` : string. Classe(s) CSS supplémentaires à appliquer (par ex. sur l’image).
-- `voters` ou `voter` : string ou string[] d’attributs de sécurité ; le template/contrôleur peut s’en servir pour masquer un champ si non autorisé.
+Options de rendu (liste non exhaustive) :
+- `format` : string. Pour les dates, tout format PHP (ex. `Y-m-d`).
+- `boolean_icon` : bool. Si `true`, affiche une icône coche/croix (✓/✗) pour les booléens.
+- `type` : string. Type de rendu automatique. Valeurs disponibles :
+  - `truncate` : tronque le texte. Options : `length` (défaut: 50).
+  - `currency` : formatage monétaire. Options : `symbol` (défaut: '€'), `decimals` (défaut: 2).
+  - `number` : formatage numérique. Options : `decimals` (défaut: 2), `decimal_separator` (défaut: ','), `thousand_separator` (défaut: ' ').
+  - `percent` : pourcentage. Options : `decimals` (défaut: 0).
+  - `badge` : badge coloré. Options : `color_map` (map valeur → couleur Bootstrap, ex: `{ active: 'success', inactive: 'secondary' }`).
+  - `boolean_badge` : badge success/danger pour booléens (Oui/Non).
+  - `link` : lien cliquable. Options : `target` (défaut: '_blank').
+  - `email` : lien mailto.
+  - `image` : balise `<img>`. Options : `class` (classe CSS).
+- `class` : string. Classe(s) CSS supplémentaires (pour type: image).
+- `voters` ou `voter` : string ou string[] d’attributs de sécurité ; le template peut masquer un champ si non autorisé.
 
 Options de requête (opt-in, table live)
 ------------------------------------

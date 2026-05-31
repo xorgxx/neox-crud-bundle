@@ -1,0 +1,98 @@
+{% macro render_cell(value, options) %}
+    {% set type = options.type|default(null) %}
+    
+    {# Switch-like dispatch by type #}
+    {% if type == 'truncate' %}
+        {{ _self.truncate(value, options) }}
+    {% elseif type == 'currency' %}
+        {{ _self.currency(value, options) }}
+    {% elseif type == 'number' %}
+        {{ _self.number(value, options) }}
+    {% elseif type == 'percent' %}
+        {{ _self.percent(value, options) }}
+    {% elseif type == 'badge' %}
+        {{ _self.badge(value, options) }}
+    {% elseif type == 'boolean_badge' %}
+        {{ _self.boolean_badge(value) }}
+    {% elseif type == 'link' %}
+        {{ _self.link(value, options) }}
+    {% elseif type == 'email' %}
+        {{ _self.email(value) }}
+    {% elseif type == 'image' and value %}
+        <img src="{{ value }}" class="{{ options.class|default('') }}" alt="">
+    
+    {# Legacy options (rétrocompatibilité) #}
+    {% elseif options.boolean_icon|default(false) %}
+        {{ _self.boolean_icon(value) }}
+    {% elseif options.format|default(null) and value is not null %}
+        {{ value|date(options.format) }}
+    {% elseif value is iterable %}
+        {{ value|join(', ') }}
+    {% else %}
+        {{ value }}
+    {% endif %}
+{% endmacro %}
+
+{% macro truncate(value, options) %}
+    {% set length = options.length|default(50) %}
+    {% if value is not null and value|length > length %}
+        {{ value|slice(0, length) }}...
+    {% else %}
+        {{ value }}
+    {% endif %}
+{% endmacro %}
+
+{% macro currency(value, options) %}
+    {% if value is not null %}
+        {% set symbol = options.symbol|default('€') %}
+        {% set decimals = options.decimals|default(2) %}
+        {{ value|number_format(decimals, ',', ' ') }} {{ symbol }}
+    {% endif %}
+{% endmacro %}
+
+{% macro number(value, options) %}
+    {% if value is not null %}
+        {% set decimals = options.decimals|default(2) %}
+        {% set decimal_sep = options.decimal_separator|default(',') %}
+        {% set thousand_sep = options.thousand_separator|default(' ') %}
+        {{ value|number_format(decimals, decimal_sep, thousand_sep) }}
+    {% endif %}
+{% endmacro %}
+
+{% macro percent(value, options) %}
+    {% if value is not null %}
+        {{ value|number_format(options.decimals|default(0)) }}%
+    {% endif %}
+{% endmacro %}
+
+{% macro badge(value, options) %}
+    {% if value is not null %}
+        {% set color_map = options.color_map|default({}) %}
+        {% set color = color_map[value]|default('secondary') %}
+        <span class="badge bg-{{ color }}">{{ value }}</span>
+    {% endif %}
+{% endmacro %}
+
+{% macro boolean_badge(value) %}
+    {% if value %}
+        <span class="badge bg-success">Oui</span>
+    {% else %}
+        <span class="badge bg-danger">Non</span>
+    {% endif %}
+{% endmacro %}
+
+{% macro link(value, options) %}
+    {% if value %}
+        <a href="{{ value }}" target="{{ options.target|default('_blank') }}" class="text-decoration-none">{{ value }}</a>
+    {% endif %}
+{% endmacro %}
+
+{% macro email(value) %}
+    {% if value %}
+        <a href="mailto:{{ value }}">{{ value }}</a>
+    {% endif %}
+{% endmacro %}
+
+{% macro boolean_icon(value) %}
+    {% if value %}✓{% else %}✗{% endif %}
+{% endmacro %}
