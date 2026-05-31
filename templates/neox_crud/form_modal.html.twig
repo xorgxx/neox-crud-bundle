@@ -1,3 +1,5 @@
+{% form_theme form '@NeoxCrud/form/neox_crud_form_theme.html.twig' %}
+
 {% set __is_edit = entity is defined and attribute(entity, 'id') is not null %}
 
 {% set __title_key = resource ~ '.title.' ~ (__is_edit ? 'edit' : 'new') %}
