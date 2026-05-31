@@ -29,3 +29,10 @@
     {% set attr = attr|merge({ class: attr.class|default('form-select') ~ ' text-start' }) %}
     {{ parent() }}
 {% endblock %}
+
+{# Surcharge de form_help pour ne pas afficher si null ou vide #}
+{% block form_help %}
+    {% if help is not null and help is not empty %}
+        {{ parent() }}
+    {% endif %}
+{% endblock %}
