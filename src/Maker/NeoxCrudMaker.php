@@ -140,12 +140,32 @@ HELP)
                 ->addOption('twig-namespace', null, InputOption::VALUE_OPTIONAL, 'Twig namespace to use for base layout extends (overrides configuration).', null)
                 ->addOption('twig-base-layout', null, InputOption::VALUE_OPTIONAL, 'Explicit Twig base layout path (e.g. \'@App/admin/_layout.html.twig\' or \'/admin/_layout.html.twig\'). Overrides configuration.', null)
                 ->addOption('with-controller', null, InputOption::VALUE_NONE, 'Generate a dedicated controller extending GenericCrudController (disabled by default).')
-                ->addOption('enable-live-table', null, InputOption::VALUE_NONE, 'Enable LiveTable in the generated handler config.yaml (per resource).')
-                ->addOption('with-bulk-ui', null, InputOption::VALUE_NONE, 'Include selection column + bulk actions UI in index template (disabled by default).');
+                ->addOption('enable-live-table', null, InputOption::VALUE_NONE, 'Enable LiveTable in the generated handler config.yaml (per resource).');
     }
 
     public function interact(InputInterface $input, ConsoleStyle $io, Command $command): void
     {
+        // --- Interactive prompts for options not already passed as CLI flags ---
+
+        if (!$input->getOption('with-trans')) {
+            $withTrans = $io->confirm('Générer un fichier de traductions ?', false);
+            $input->setOption('with-trans', $withTrans);
+            if ($withTrans) {
+                $locale = $io->ask('Langue (locale)', $input->getOption('locale') ?: 'fr');
+                $input->setOption('locale', $locale);
+            }
+        }
+
+        if (!$input->getOption('with-controller')) {
+            $input->setOption('with-controller', $io->confirm('Générer un contrôleur dédié (GenericCrudController) ?', false));
+        }
+
+        if (!$input->getOption('enable-live-table')) {
+            $input->setOption('enable-live-table', $io->confirm('Activer le LiveTable ?', false));
+        }
+
+        // ---------------------------------------------------------------
+
         $entityClass = $this->resolveEntityClass((string) $input->getArgument('entity-class'));
         $entityMetadata = $this->doctrineHelper->getMetadata($entityClass);
 
@@ -171,15 +191,33 @@ HELP)
                 }
 
                 $inferredFormType = $this->inferFormTypeFromEntity($targetEntity);
-                $integrationChoices = [
-                    '1' => 'CollectionType (inline editing with entry_type, requires custom JavaScript)',
-                    '2' => 'Live Component CollectionType (zero JavaScript, requires symfony/ux-live-component)',
-                    '3' => 'UX Autocomplete (AutocompleteEntityType with multiple=true)',
-                    '4' => 'Custom/Complex (skip, implement manually)',
-                    '5' => 'Skip this relation',
-                ];
+                $isJoinEntity     = $this->isJoinEntity($targetEntity);
+
+                if ($isJoinEntity) {
+                    $integrationChoices = [
+                        '1' => 'CollectionType (inline editing with entry_type, requires custom JavaScript)',
+                        '2' => 'Live Component CollectionType (zero JavaScript, requires symfony/ux-live-component)  ← recommandé',
+                        '4' => 'Custom/Complex (skip, implement manually)',
+                        '5' => 'Skip this relation',
+                    ];
+                } else {
+                    $integrationChoices = [
+                        '1' => 'CollectionType (inline editing with entry_type, requires custom JavaScript)',
+                        '2' => 'Live Component CollectionType (zero JavaScript, requires symfony/ux-live-component)',
+                        '3' => 'UX Autocomplete (AutocompleteEntityType with multiple=true)  ← recommandé',
+                        '4' => 'Custom/Complex (skip, implement manually)',
+                        '5' => 'Skip this relation',
+                    ];
+                }
+
                 $integrationChoice = $io->choice(
-                    sprintf('Relation "%s" (OneToMany, targetEntity: %s)\nFormType cible déduit : %s\nType d\'intégration ?', $assocName, $targetEntity, $inferredFormType),
+                    sprintf(
+                        'Relation "%s" (OneToMany, targetEntity: %s)%s\nFormType cible déduit : %s\nType d\'intégration ?',
+                        $assocName,
+                        $targetEntity,
+                        $isJoinEntity ? '\n[entité join détectée : champs supplémentaires présents — option 3 non disponible]' : '',
+                        $inferredFormType
+                    ),
                     $integrationChoices,
                     $integrationChoices['5']
                 );
@@ -881,6 +919,31 @@ HELP)
                 'Exécutez :',
                 sprintf('  php bin/console make:entity --regenerate "%s"', $entityClass),
             ]);
+        }
+    }
+
+    /**
+     * Heuristic: an entity is a "join entity" (has its own domain fields) when it has
+     * more than 1 non-id, non-mobile scalar field. Simple lookup entities (nom, label…)
+     * have at most 1 such field and are safe to use with AutocompleteEntityType.
+     */
+    private function isJoinEntity(string $entityClass): bool
+    {
+        if (!class_exists($entityClass)) {
+            return false;
+        }
+
+        try {
+            $meta   = $this->doctrineHelper->getMetadata($entityClass);
+            $fields = array_filter(
+                $meta->getFieldNames(),
+                static fn (string $f) => !\in_array($f, ['id', 'uuid'], true)
+                    && !str_starts_with($f, 'mobile')
+            );
+
+            return \count($fields) > 1;
+        } catch (\Throwable) {
+            return false;
         }
     }
 

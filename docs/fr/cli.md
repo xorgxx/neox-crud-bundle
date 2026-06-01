@@ -80,11 +80,24 @@ make:neox:crud-maker — CRUD complet
 
 Commande
 ```
-php bin/console make:neox:crud-maker <entity-class> [--slug=<slug>] [--with-trans] [--locale=<fr|en|...>] [--twig-namespace=<NsOuChemin>] [--twig-base-layout=<chemin>] [--with-controller] [--with-bulk-ui]
+php bin/console make:neox:crud-maker <entity-class> [--slug=<slug>] [--with-trans] [--locale=<fr|en|...>] [--twig-namespace=<NsOuChemin>] [--twig-base-layout=<chemin>] [--with-controller] [--enable-live-table]
 ```
 
 Arguments
 - entity-class: FQCN ou raccourci Doctrine (ex: App\Entity\Product ou Product)
+
+Mode interactif
+
+Si aucun flag n'est fourni, le Maker pose ces questions avant de generer :
+
+```
+ Generer un fichier de traductions ? (yes/no) [no]:
+ Langue (locale) [fr]:
+ Generer un controleur dedie (GenericCrudController) ? (yes/no) [no]:
+ Activer le LiveTable ? (yes/no) [no]:
+```
+
+Si un flag est passe explicitement (ex. `--with-trans`), la question correspondante est ignoree.
 
 Options
 - --slug: slug de la ressource (préféré) (par défaut: nom court de l’entité en minuscule)
@@ -93,8 +106,7 @@ Options
 - --twig-namespace: Soit un namespace Twig (ex. `Admin`, `NeoxCrud`), soit un chemin complet de template Twig (ex. `@Admin/Partial/_layout.html.twig` ou `Admin/Partial/_layout.html.twig`) utilisé pour résoudre le layout de base des templates du bundle. Surcharge `neox_crud.makers.templates_namespace`.
 - --twig-base-layout: Chemin Twig explicite pour le layout de base (ex. `@App/admin/_layout.html.twig` ou `/admin/_layout.html.twig`). Prioritaire sur `--twig-namespace` et sur la configuration.
 - --with-controller: génère un contrôleur dédié qui étend `GenericCrudController` pour cette ressource (désactivé par défaut).
-- --with-bulk-ui: ne génère plus de templates Twig, ce flag n’a donc pas d’impact sur les fichiers générés.
-
+- `--enable-live-table` : active le LiveTable dans le `config.yaml` du handler (demandé interactivement si absent)
 Compatibilité ascendante
 - --resource reste accepté comme alias mais est déprécié au profit de --slug.
 
@@ -136,7 +148,7 @@ php bin/console make:neox:crud-maker Product --twig-base-layout=/admin/_layout.h
 php bin/console make:neox:crud-maker Product --with-controller
 
 # Générer l’index avec colonne de sélection et UI des actions de masse (opt‑in)
-php bin/console make:neox:crud-maker Product --with-bulk-ui
+php bin/console make:neox:crud-maker Product --enable-live-table
 ```
 
 Le dossier du handler généré contiendra un `config.yaml` éditable:
