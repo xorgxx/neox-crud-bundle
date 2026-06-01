@@ -34,6 +34,9 @@ class NeoxCrudMaker extends AbstractMaker
     private ?string $templatesNamespace = null;
     private ?string $defaultBaseLayout  = null;
 
+    /** @var array<string, array{name: string, type: string|null, options: array<string, mixed>}> */
+    private array $relationFormFieldsByName = [];
+
     /**
      * @param string[] $fieldKeys
      * @param array<string,string> $patterns
@@ -45,6 +48,9 @@ class NeoxCrudMaker extends AbstractMaker
     ], private array $patterns = [], public readonly array $makers = [])
     {
     }
+
+    /** @var array<int, array{entity_class: string, form_type_class: string}> */
+    private array $formTypesToGenerate = [];
 
     public static function getCommandName(): string
     {
@@ -140,7 +146,174 @@ HELP)
 
     public function interact(InputInterface $input, ConsoleStyle $io, Command $command): void
     {
-        // Keep it simple: everything via arguments/options.
+        $entityClass = $this->resolveEntityClass((string) $input->getArgument('entity-class'));
+        $entityMetadata = $this->doctrineHelper->getMetadata($entityClass);
+
+        $relationsConfig = $this->getRelationsConfig();
+        $mode = (string) ($relationsConfig['mode'] ?? 'mix');
+        $defaultRender = (string) ($relationsConfig['default_render'] ?? 'select');
+        $choiceLabelPriority = $relationsConfig['choice_label_priority'] ?? ['name', 'title', 'label', 'id'];
+
+        $associationNames = $entityMetadata->getAssociationNames();
+        if ($associationNames === []) {
+            return;
+        }
+
+        foreach ($associationNames as $assocName) {
+            $mapping = $entityMetadata->getAssociationMapping($assocName);
+            $relationType = (int) ($mapping['type'] ?? 0);
+
+            // OneToMany (inverse side) - ask user for integration type
+            if ($relationType === 4) {
+                $targetEntity = (string) ($mapping['targetEntity'] ?? '');
+                if ($targetEntity === '') {
+                    continue;
+                }
+
+                $inferredFormType = $this->inferFormTypeFromEntity($targetEntity);
+                $integrationChoices = [
+                    '1' => 'CollectionType (inline editing with entry_type, requires custom JavaScript)',
+                    '2' => 'Live Component CollectionType (zero JavaScript, requires symfony/ux-live-component)',
+                    '3' => 'UX Autocomplete (AutocompleteEntityType with multiple=true)',
+                    '4' => 'Custom/Complex (skip, implement manually)',
+                    '5' => 'Skip this relation',
+                ];
+                $integrationChoice = $io->choice(
+                    sprintf('Relation "%s" (OneToMany, targetEntity: %s)\nFormType cible déduit : %s\nType d\'intégration ?', $assocName, $targetEntity, $inferredFormType),
+                    $integrationChoices,
+                    $integrationChoices['5']
+                );
+                // SymfonyStyle::choice() can return either the key (e.g. '2') or the value (label)
+                // depending on how the underlying ChoiceQuestion normalizes the choices.
+                if (array_key_exists($integrationChoice, $integrationChoices)) {
+                    $integrationType = (string) $integrationChoice;
+                } else {
+                    $integrationType = array_search($integrationChoice, $integrationChoices, true) ?: '5';
+                }
+
+                // PHP casts numeric-string array keys to int, so integrationType can be int(2).
+                // Normalize to string to make strict comparisons reliable.
+                $integrationType = (string) $integrationType;
+
+                if ($integrationType === '5') {
+                    continue;
+                }
+
+                if ($integrationType === '2' || $integrationType === '1') {
+                    $options = [
+                        'entry_type' => $inferredFormType,
+                        'allow_add' => true,
+                        'allow_delete' => true,
+                        'by_reference' => false,
+                    ];
+
+                    if ($integrationType === '2') {
+                        $options['attr'] = [
+                            'data-neox-live-collection' => '1',
+                        ];
+                        $options['row_attr'] = [
+                            'data-neox-live-collection' => '1',
+                        ];
+                    }
+
+                    $this->relationFormFieldsByName[$assocName] = [
+                        'name' => $assocName,
+                        'type' => '\\Symfony\\Component\\Form\\Extension\\Core\\Type\\CollectionType',
+                        'options' => $options,
+                        'live_component' => $integrationType === '2',
+                    ];
+
+                    // Check if the target FormType exists, offer to generate it if not
+                    if (!class_exists($inferredFormType)) {
+                        $generateFormType = $io->confirm(
+                            sprintf('Le FormType %s n\'existe pas. Le générer dans handlerType ? (y/n)', $inferredFormType),
+                            true
+                        );
+                        if ($generateFormType) {
+                            $this->formTypesToGenerate[] = [
+                                'entity_class' => $targetEntity,
+                                'form_type_class' => $inferredFormType,
+                            ];
+                        }
+                    }
+
+                    // Check that add*/remove* methods exist on the parent entity
+                    $this->checkEntityCollectionMethods($entityClass, $assocName, $io);
+                } elseif ($integrationType === '3') {
+                    $choiceLabel = $this->detectChoiceLabel($targetEntity, $choiceLabelPriority);
+                    if ($choiceLabel === null) {
+                        $choiceLabel = (string) $io->ask('Nom du champ à utiliser comme choice_label', 'id');
+                    }
+
+                    $this->relationFormFieldsByName[$assocName] = [
+                        'name' => $assocName,
+                        'type' => '\\Symfony\\UX\\Autocomplete\\Form\\AutocompleteEntityType',
+                        'options' => [
+                            'class' => $targetEntity,
+                            'choice_label' => $choiceLabel,
+                            'multiple' => true,
+                            'searchable_fields' => [$choiceLabel],
+                        ],
+                    ];
+                }
+                // custom: skip, user will implement manually
+                continue;
+            }
+
+            $targetEntity = (string) ($mapping['targetEntity'] ?? '');
+            if ($targetEntity === '') {
+                continue;
+            }
+
+            $render = $defaultRender;
+            if ($mode === 'interactive' || ($render === 'autocomplete' && !\class_exists('Symfony\\UX\\Autocomplete\\Form\\AutocompleteEntityType'))) {
+                $render = (string) $io->choice(
+                    sprintf('Relation "%s": Type de rendu ?', $assocName),
+                    ['select', 'autocomplete', 'checkbox'],
+                    $render
+                );
+            }
+
+            $choiceLabel = $this->detectChoiceLabel($targetEntity, $choiceLabelPriority);
+            if ($mode === 'interactive' || $choiceLabel === null) {
+                $choiceLabel = (string) $io->choice(
+                    sprintf('Relation "%s": impossible de détecter choice_label. Choisir :', $assocName),
+                    ['id', 'custom'],
+                    $choiceLabel ?? 'id'
+                );
+                if ($choiceLabel === 'custom') {
+                    $choiceLabel = (string) $io->ask('Nom du champ à utiliser comme choice_label', 'id');
+                }
+            }
+
+            $multiple = $relationType === 8;
+
+            if ($render === 'autocomplete') {
+                $type = '\\Symfony\\UX\\Autocomplete\\Form\\AutocompleteEntityType';
+                $options = [
+                    'class' => $targetEntity,
+                    'choice_label' => $choiceLabel,
+                    'multiple' => $multiple,
+                    'searchable_fields' => [$choiceLabel],
+                ];
+            } else {
+                $type = '\\Symfony\\Bridge\\Doctrine\\Form\\Type\\EntityType';
+                $options = [
+                    'class' => $targetEntity,
+                    'choice_label' => $choiceLabel,
+                    'multiple' => $multiple,
+                ];
+                if ($render === 'checkbox') {
+                    $options['expanded'] = true;
+                }
+            }
+
+            $this->relationFormFieldsByName[$assocName] = [
+                'name' => $assocName,
+                'type' => $type,
+                'options' => $options,
+            ];
+        }
     }
 
     public function generate(InputInterface $input, ConsoleStyle $io, Generator $generator): void
@@ -149,11 +322,7 @@ HELP)
 
         $enableLiveTable = (bool) $input->getOption('enable-live-table');
 
-        if (!str_contains($entityClassInput, '\\')) {
-            $entityClass = $this->doctrineHelper->getEntityNamespace() . '\\' . $entityClassInput;
-        } else {
-            $entityClass = $entityClassInput;
-        }
+        $entityClass = $this->resolveEntityClass($entityClassInput);
 
         $entityMetadata  = $this->doctrineHelper->getMetadata($entityClass);
         $entityShortName = $entityMetadata->getReflectionClass()
@@ -196,13 +365,36 @@ HELP)
         // Fields: all simple fields except the id
         $fieldNames = array_filter($entityMetadata->getFieldNames(), static fn (string $field): bool => $field !== 'id');
 
+        // Exclude scalar fields coming from traits (commonly technical metadata like MobileSyncMetadataTrait)
+        $entityRefl = $entityMetadata->getReflectionClass();
+        $fieldNames = array_values(array_filter(
+            $fieldNames,
+            static function (string $fieldName) use ($entityRefl): bool {
+                if (!$entityRefl->hasProperty($fieldName)) {
+                    return true;
+                }
+
+                $prop = $entityRefl->getProperty($fieldName);
+                return !$prop->getDeclaringClass()->isTrait();
+            }
+        ));
+
+        // Build field types for config.yaml template
+        /** @var array<string, string> $fieldTypes */
+        $fieldTypes = [];
+        foreach ($fieldNames as $fieldName) {
+            $doctrineType = $entityMetadata->getTypeOfField($fieldName);
+            $fieldTypes[$fieldName] = $doctrineType;
+        }
+
         // 1) Generate FormType – with .sav behavior
         $projectRoot      = $generator->getRootDirectory();
         $formPath         = 'src/Form/' . $formShort . '.php';
         $absoluteFormPath = $projectRoot . '/' . $formPath;
 
-        // Build form fields with auto-guessed Symfony Form Types based on Doctrine metadata
-        $formFields = [];
+        // Build scalar form fields with auto-guessed Symfony Form Types based on Doctrine metadata
+        /** @var array<string, array{name: string, type: string|null, options: array<string, mixed>}> $scalarFormFieldsByName */
+        $scalarFormFieldsByName = [];
         foreach ($fieldNames as $fieldName) {
             $doctrineType = $entityMetadata->getTypeOfField($fieldName);
             $formType     = match ($doctrineType) {
@@ -273,21 +465,31 @@ HELP)
                 }
             }
 
+            // IntegerType: empty_data => 0 prevents null being passed to int-typed setters
+            if (in_array($doctrineType, ['integer', 'smallint', 'bigint'], true)) {
+                $options['empty_data'] = 0;
+            }
+
+            // CheckboxType (boolean): always required => false — unchecked = not submitted = null otherwise
+            if ($doctrineType === 'boolean') {
+                $options['required'] = false;
+            }
+
             // If boolean and nullable in Doctrine, make the field not required to avoid validation hiccups
             if ($doctrineType === 'boolean') {
                 // Doctrine\ORM\Mapping\ClassMetadata has getFieldMapping(),
                 // but Doctrine\Persistence\Mapping\ClassMetadata (interface) does not declare it.
                 // Guard the call for compatibility across versions/drivers.
                 if (\method_exists($entityMetadata, 'getFieldMapping')) {
-                    /** @var array<string, mixed> $mapping */
                     $mapping = $entityMetadata->getFieldMapping($fieldName);
-                    if (isset($mapping['nullable']) && $mapping['nullable'] === true) {
+                    $nullable = \is_object($mapping) ? ($mapping->nullable ?? false) : ($mapping['nullable'] ?? false);
+                    if ($nullable === true) {
                         $options['required'] = false;
                     }
                 }
             }
 
-            $formFields[] = [
+            $scalarFormFieldsByName[$fieldName] = [
                 'name' => $fieldName,
                 'type' => $formType,
                 // FQCN with leading backslash or null
@@ -295,9 +497,52 @@ HELP)
             ];
         }
 
+        $relationsConfig = $this->getRelationsConfig();
+        $nullableRequired = (bool) ($relationsConfig['nullable_required'] ?? false);
+
+        // Apply nullable => required=false for relation fields if configured
+        if (!$nullableRequired) {
+            foreach ($this->relationFormFieldsByName as $assocName => $fieldDef) {
+                $mapping = $entityMetadata->getAssociationMapping($assocName);
+                $isNullable = (bool) ($mapping['joinColumns'][0]['nullable'] ?? false);
+                if ($isNullable) {
+                    $fieldDef['options']['required'] = false;
+                    $this->relationFormFieldsByName[$assocName] = $fieldDef;
+                }
+            }
+        }
+
+        // Merge scalar + relation fields according to makers.relations.order (default: interleaved)
+        $order = (string) ($relationsConfig['order'] ?? 'interleaved');
+        $formFields = [];
+        if ($order === 'interleaved') {
+            $associationNames = $entityMetadata->getAssociationNames();
+            $orderedNames = $this->getOrderedPropertyNamesWithAssociations($entityMetadata->getReflectionClass(), $associationNames);
+            foreach ($orderedNames as $propName) {
+                if (isset($scalarFormFieldsByName[$propName])) {
+                    $formFields[] = $scalarFormFieldsByName[$propName];
+                    unset($scalarFormFieldsByName[$propName]);
+                    continue;
+                }
+                if (isset($this->relationFormFieldsByName[$propName])) {
+                    $formFields[] = $this->relationFormFieldsByName[$propName];
+                    unset($this->relationFormFieldsByName[$propName]);
+                }
+            }
+        }
+
+        // Remaining scalars (and relations if any) appended at the end
+        foreach ($scalarFormFieldsByName as $fieldDef) {
+            $formFields[] = $fieldDef;
+        }
+        foreach ($this->relationFormFieldsByName as $fieldDef) {
+            $formFields[] = $fieldDef;
+        }
+
         $formContext = [
             'entity_class'    => $entityClass,
             'form_class_name' => $formShort,
+            'form_namespace'  => 'App\\Form',
             'fields'          => $fieldNames,
             // kept for other templates (index, translations)
             'form_fields' => $formFields,
@@ -316,6 +561,78 @@ HELP)
         } else {
             // No existing FormType: generate it normally
             $generator->generateClass($formClassNameDetails->getFullName(), __DIR__ . '/tpl/NeoxCrudFormType.tpl.php', $formContext);
+        }
+
+        // 1.5) Generate target FormTypes for OneToMany relations (in handlerType subdirectory)
+        foreach ($this->formTypesToGenerate as $formTypeToGenerate) {
+            $targetEntityClass = $formTypeToGenerate['entity_class'];
+            $targetFormTypeClass = $formTypeToGenerate['form_type_class'];
+
+            try {
+                $targetEntityMetadata = $this->doctrineHelper->getMetadata($targetEntityClass);
+                $targetEntityShortName = $targetEntityMetadata->getReflectionClass()->getShortName();
+
+                // Generate in Form/handlerType directory: Form/handlerType/
+                $formNamespacePrefix = 'Form\\handlerType\\';
+                $targetFormClassNameDetails = $generator->createClassNameDetails($targetEntityShortName . 'Type', $formNamespacePrefix);
+
+                // Build scalar form fields for target entity
+                $targetFieldNames = array_filter($targetEntityMetadata->getFieldNames(), static fn (string $field): bool => $field !== 'id');
+                $targetScalarFormFieldsByName = [];
+                foreach ($targetFieldNames as $fieldName) {
+                    $doctrineType = $targetEntityMetadata->getTypeOfField($fieldName);
+                    $formType = match ($doctrineType) {
+                        'string' => '\\Symfony\\Component\\Form\\Extension\\Core\\Type\\TextType',
+                        'text' => '\\Symfony\\Component\\Form\\Extension\\Core\\Type\\TextareaType',
+                        'integer', 'smallint', 'bigint' => '\\Symfony\\Component\\Form\\Extension\\Core\\Type\\IntegerType',
+                        'float', 'decimal' => '\\Symfony\\Component\\Form\\Extension\\Core\\Type\\NumberType',
+                        'boolean' => '\\Symfony\\Component\\Form\\Extension\\Core\\Type\\CheckboxType',
+                        'date', 'date_immutable' => '\\Symfony\\Component\\Form\\Extension\\Core\\Type\\DateType',
+                        'datetime', 'datetimetz', 'datetime_immutable' => '\\Symfony\\Component\\Form\\Extension\\Core\\Type\\DateTimeType',
+                        'time', 'time_immutable' => '\\Symfony\\Component\\Form\\Extension\\Core\\Type\\TimeType',
+                        'json' => \Symfony\Component\Form\Extension\Core\Type\TextareaType::class,
+                        'array', 'simple_array' => '\\Symfony\\Component\\Form\\Extension\\Core\\Type\\CollectionType',
+                        'uuid', 'guid' => '\\Symfony\\Component\\Form\\Extension\\Core\\Type\\TextType',
+                        default => null,
+                    };
+
+                    $options = [];
+                    if ($doctrineType === 'array' || $doctrineType === 'simple_array') {
+                        $options = [
+                            'entry_type' => '\\Symfony\\Component\\Form\\Extension\\Core\\Type\\TextType',
+                            'allow_add' => true,
+                            'allow_delete' => true,
+                        ];
+                    }
+
+                    $targetScalarFormFieldsByName[$fieldName] = [
+                        'name' => $fieldName,
+                        'type' => $formType,
+                        'options' => $options,
+                    ];
+                }
+
+                $targetFormContext = [
+                    'entity_class' => $targetEntityClass,
+                    'form_class_name' => $targetFormClassNameDetails->getShortName(),
+                    'form_namespace' => (static function () use ($targetFormTypeClass): string {
+                        $pos = strrpos($targetFormTypeClass, '\\');
+                        if ($pos === false) {
+                            return 'App\\Form';
+                        }
+                        return substr($targetFormTypeClass, 0, $pos);
+                    })(),
+                    'fields' => $targetFieldNames,
+                    'form_fields' => array_values($targetScalarFormFieldsByName),
+                    'resource' => strtolower($targetEntityShortName),
+                    'field_keys' => $this->fieldKeys,
+                ];
+
+                $generator->generateClass($targetFormClassNameDetails->getFullName(), __DIR__ . '/tpl/NeoxCrudFormType.tpl.php', $targetFormContext);
+                $io->text(sprintf('Generated FormType "%s" for OneToMany relation.', $targetFormClassNameDetails->getFullName()));
+            } catch (\Throwable $e) {
+                $io->warning(sprintf('Failed to generate FormType for entity "%s": %s', $targetEntityClass, $e->getMessage()));
+            }
         }
 
         // 2) Generate handler
@@ -343,6 +660,7 @@ HELP)
                     'class_name' => $handlerClassNameDetails->getShortName(),
                     // Suggest all detected entity fields in comments for quick start
                     'available_fields' => $fieldNames,
+                    'field_types' => $fieldTypes,
                     'enable_live_table' => $enableLiveTable,
                 ]
             );
@@ -435,5 +753,172 @@ HELP)
     public function setBaseLayout(?string $baseLayout): void
     {
         $this->defaultBaseLayout = $baseLayout ?: null;
+    }
+
+    private function resolveEntityClass(string $entityClassInput): string
+    {
+        if (!str_contains($entityClassInput, '\\')) {
+            return $this->doctrineHelper->getEntityNamespace() . '\\' . $entityClassInput;
+        }
+
+        return $entityClassInput;
+    }
+
+    /** @return array<string, mixed> */
+    private function getRelationsConfig(): array
+    {
+        $relations = $this->makers['relations'] ?? [];
+        if (!is_array($relations)) {
+            $relations = [];
+        }
+
+        return array_replace([
+            'mode' => 'mix',
+            'default_render' => 'select',
+            'choice_label_priority' => ['name', 'title', 'label', 'id'],
+            'nullable_required' => false,
+            'order' => 'interleaved',
+            'group_relations' => true,
+        ], $relations);
+    }
+
+    /** @param string[] $priority */
+    private function detectChoiceLabel(string $targetEntity, array $priority): ?string
+    {
+        try {
+            $meta = $this->doctrineHelper->getMetadata($targetEntity);
+            $fields = $meta->getFieldNames();
+        } catch (\Throwable) {
+            $fields = [];
+        }
+
+        foreach ($priority as $candidate) {
+            if (is_string($candidate) && in_array($candidate, $fields, true)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private function inferFormTypeFromEntity(string $entityClass): string
+    {
+        // Replace Entity namespace with Form/handlerType namespace and add Type suffix
+        // Example: App\Entity\Product -> App\Form\handlerType\ProductType
+        $formClass = str_replace('\\Entity\\', '\\Form\\handlerType\\', $entityClass);
+        $shortName = (new \ReflectionClass($entityClass))->getShortName();
+        $formClass = substr($formClass, 0, -strlen($shortName)) . $shortName . 'Type';
+
+        return $formClass;
+    }
+
+    /** @return string[] */
+    private function guessSingulars(string $word): array
+    {
+        $candidates = [];
+
+        if (class_exists(\Symfony\Component\String\Inflector\FrenchInflector::class)) {
+            $candidates = array_merge($candidates, (new \Symfony\Component\String\Inflector\FrenchInflector())->singularize($word));
+        }
+        if (class_exists(\Symfony\Component\String\Inflector\EnglishInflector::class)) {
+            $candidates = array_merge($candidates, (new \Symfony\Component\String\Inflector\EnglishInflector())->singularize($word));
+        }
+
+        // Fallback simple rules when symfony/string inflectors are unavailable
+        if ($candidates === []) {
+            if (str_ends_with($word, 'ies')) {
+                $candidates[] = substr($word, 0, -3) . 'y';
+            }
+            if (str_ends_with($word, 'eaux') || str_ends_with($word, 'aux')) {
+                $candidates[] = substr($word, 0, -1) . 'l';
+            }
+            if (str_ends_with($word, 's') && !str_ends_with($word, 'ss') && !str_ends_with($word, 'us')) {
+                $candidates[] = substr($word, 0, -1);
+            }
+        }
+
+        $candidates[] = $word;
+
+        return array_values(array_unique($candidates));
+    }
+
+    private function checkEntityCollectionMethods(string $entityClass, string $assocName, ConsoleStyle $io): void
+    {
+        if (!class_exists($entityClass)) {
+            return;
+        }
+
+        $reflClass = new \ReflectionClass($entityClass);
+        $singulars  = $this->guessSingulars($assocName);
+
+        $addMethod    = null;
+        $removeMethod = null;
+
+        foreach ($singulars as $singular) {
+            $candidate = 'add' . ucfirst((string) $singular);
+            if ($reflClass->hasMethod($candidate)) {
+                $addMethod    = $candidate;
+                $removeMethod = 'remove' . ucfirst((string) $singular);
+                break;
+            }
+        }
+
+        $missing = [];
+
+        if ($addMethod === null) {
+            $expected  = 'add' . ucfirst((string) ($singulars[0] ?? $assocName));
+            $missing[] = $expected . '()  [non trouvé]';
+        }
+
+        if ($addMethod !== null && $removeMethod !== null && !$reflClass->hasMethod($removeMethod)) {
+            $missing[] = $removeMethod . '()  [non trouvé]';
+        }
+
+        if ($missing !== []) {
+            $io->warning([
+                sprintf('La relation "%s" sur %s nécessite ces méthodes :', $assocName, $entityClass),
+                ...array_map(static fn (string $m) => '  • ' . $m, $missing),
+                'Exécutez :',
+                sprintf('  php bin/console make:entity --regenerate "%s"', $entityClass),
+            ]);
+        }
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getOrderedPropertyNames(\ReflectionClass $reflClass): array
+    {
+        $props = $reflClass->getProperties();
+        $names = [];
+        foreach ($props as $p) {
+            // Skip properties from traits (keep only properties declared in this class)
+            if ($p->getDeclaringClass()->getName() === $reflClass->getName()) {
+                $names[] = $p->getName();
+            }
+        }
+        return $names;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getOrderedPropertyNamesWithAssociations(\ReflectionClass $reflClass, array $associationNames): array
+    {
+        $props = $reflClass->getProperties();
+        $names = [];
+        foreach ($props as $p) {
+            // Skip properties from traits (keep only properties declared in this class)
+            if ($p->getDeclaringClass()->getName() === $reflClass->getName()) {
+                $names[] = $p->getName();
+            }
+        }
+        // Add association names that are not already in the list
+        foreach ($associationNames as $assocName) {
+            if (!in_array($assocName, $names, true)) {
+                $names[] = $assocName;
+            }
+        }
+        return $names;
     }
 }

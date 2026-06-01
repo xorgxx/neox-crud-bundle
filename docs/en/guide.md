@@ -30,8 +30,12 @@ Optional Maker configuration:
 neox_crud:
   makers:
     relations:
+      mode: 'interactive'             # mix|interactive (default: mix)
       default_render: 'autocomplete'
 ```
+
+- `mode: 'mix'` (default): the Maker asks questions only if ambiguous.
+- `mode: 'interactive'`: the Maker always asks questions for each relation.
 
 13. Development and quality checks
 

@@ -1,0 +1,73 @@
+<div {{ attributes }}>
+    {% set collection = form[fieldName] %}
+
+    {{ form_errors(collection) }}
+
+    {% for item_form in collection %}
+        {# Existing item: id is set — read-only. New item: id is null — editable. #}
+        {% set is_new = item_form.vars.data is null or item_form.vars.data.id is null %}
+
+        <div class="row g-2 align-items-end mb-2">
+
+            {% if is_new %}
+                {# New item being added: all fields editable #}
+                {% for field in item_form %}
+                    {% if 'hidden' in field.vars.block_prefixes %}
+                        {{ form_widget(field) }}
+                    {% else %}
+                        <div class="col">
+                            {{ form_row(field, { label: false, help: false, row_attr: {class: 'mb-0'} }) }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+            {% else %}
+                {# Existing item: disabled widget (visible) + hidden input (submitted) #}
+                {% for field in item_form %}
+                    {% if 'hidden' in field.vars.block_prefixes %}
+                        {{ form_widget(field) }}
+                    {% else %}
+                        <div class="col">
+                            {{ form_widget(field, { attr: { disabled: true, class: 'form-control' } }) }}
+                            {# For checkboxes: vars.value is always "1" regardless of checked state.
+                               Only send the hidden input when actually checked; absence = false. #}
+                            {% if 'checkbox' in field.vars.block_prefixes %}
+                                {% if field.vars.checked %}
+                                    <input type="hidden" name="{{ field.vars.full_name }}" value="1">
+                                {% endif %}
+                            {% else %}
+                                <input type="hidden"
+                                       name="{{ field.vars.full_name }}"
+                                       value="{{ field.vars.value }}">
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+            {% endif %}
+
+            {{ form_rest(item_form) }}
+
+            <div class="col-auto">
+                <button type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        data-action="live#action"
+                        data-live-action-param="removeCollectionItem"
+                        data-live-name-param="{{ fieldName }}"
+                        data-live-index-param="{{ loop.index0 }}">
+                    &times;
+                </button>
+            </div>
+        </div>
+    {% endfor %}
+
+    {{ form_rest(collection) }}
+
+    <button type="button"
+            class="btn btn-sm btn-outline-primary mt-1"
+            data-action="live#action"
+            data-live-action-param="addCollectionItem"
+            data-live-name-param="{{ fieldName }}">
+        + Ajouter
+    </button>
+</div>

@@ -86,6 +86,14 @@ class MakeCrudHandler extends AbstractMaker
             static fn (string $field): bool => $field !== 'id'
         );
 
+        // Build field types for config.yaml template
+        /** @var array<string, string> $fieldTypes */
+        $fieldTypes = [];
+        foreach ($fieldNames as $fieldName) {
+            $doctrineType = $metadata->getTypeOfField($fieldName);
+            $fieldTypes[$fieldName] = $doctrineType;
+        }
+
         // Fixed path: Crud/Handle/<ResourceStudly>/<ResourceStudly>CrudHandler.php
         $handlerNamespacePrefix  = 'Crud\\Handle\\' . $resourceStudly . '\\';
         $handlerClassNameDetails = $generator->createClassNameDetails(
@@ -119,6 +127,7 @@ class MakeCrudHandler extends AbstractMaker
                     'class_name' => $handlerClassNameDetails->getShortName(),
                     // Suggest all detected entity fields in comments for quick start
                     'available_fields' => $fieldNames,
+                    'field_types' => $fieldTypes,
                     'enable_live_table' => $enableLiveTable,
                 ]
             );

@@ -1,0 +1,25 @@
+<div {{ attributes }}>
+    {{ form_start(form) }}
+    <table class="table table-borderless form-no-mb">
+        <thead>
+            <tr>
+                <td>Item</td>
+                <td>Actions</td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item_form in form.{{ field_name }} %}
+                <tr>
+                    <td>
+                        {{ form_row(item_form, { label: false, row_attr: {class: 'mb-1'} }) }}
+                    </td>
+                    <td>
+                        {{ form_row(item_form.vars.button_delete, {label: 'X', attr: {class: 'btn btn-outline-danger'}}) }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {{ form_widget(form.{{ field_name }}.vars.button_add, {label: '+ Add Item', attr: {class: 'btn btn-outline-primary'}}) }}
+    {{ form_end(form) }}
+</div>

@@ -416,6 +416,7 @@ Configuration (dans `config/packages/neox_crud.yaml`) :
 neox_crud:
   makers:
     relations:
+      mode: 'mix'                      # mix|interactive
       default_render: 'select'          # select|autocomplete|checkbox
       choice_label_priority: ['name', 'title', 'label', 'id']
       nullable_required: false
@@ -423,8 +424,22 @@ neox_crud:
       group_relations: true
 ```
 
+Options :
+- `mode` : `mix` (défaut) : questions seulement en cas d'ambiguïté (UX Autocomplete indisponible, choice_label introuvable). `interactive` : pose systématiquement des questions pour chaque relation.
+- `default_render` : type de rendu par défaut (`select`, `autocomplete`, `checkbox`).
+- `choice_label_priority` : ordre de priorité pour détecter automatiquement le champ choice_label sur les entités liées.
+- `nullable_required` : si `false`, les relations nullable sont générées avec `required=false`.
+- `order` : ordre des champs de relation dans le formulaire (`end`, `interleaved`, `start`).
+- `group_relations` : si `true`, le Maker peut regrouper les champs de relation (nécessite un thème de formulaire compatible).
+
 Notes :
 - `default_render=autocomplete` nécessite Symfony UX Autocomplete (voir guide d’installation).
+- Les relations `OneToMany` (côté inverse) : le Maker pose une question pour chaque relation OneToMany, avec déduction automatique du FormType cible (ex: `App\Entity\Product` → `App\Form\handlerType\ProductType`). L'utilisateur peut choisir le type d'intégration :
+  - `collection` : génère un `CollectionType` avec `entry_type` pointant vers le FormType déduit (nécessite JavaScript personnalisé). Si le FormType n'existe pas, le Maker propose de le générer dans `Form/handlerType/`.
+  - `live-component` : génère un `CollectionType` configuré pour Live Component et utilise le Live Component générique `neox_crud.collection_live` fourni par NeoxCrudBundle. Ce Live Component gère automatiquement l'ajout/suppression d'items sans JavaScript. Si le FormType n'existe pas, le Maker propose de le générer dans `Form/handlerType/`. Voir la documentation [Live Component Guide](live-component-guide.md) pour les points de personnalisation.
+  - `autocomplete` : génère un `AutocompleteEntityType` avec `multiple=true` (nécessite Symfony UX Autocomplete).
+  - `custom` : skip, l'utilisateur implémentera manuellement un système complexe.
+  - `skip` : ignore cette relation.
 - Pour afficher/filtrer/trier sur une relation dans `index_fields`, utilisez généralement `query_path` et `join` (ex: `category.name`, `join: left`).
 
 Options de requête (opt-in, table live)

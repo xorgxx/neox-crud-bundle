@@ -30,7 +30,37 @@
   </h1>
 
   {{ form_start(form) }}
-    {{ form_widget(form) }}
+    {% for child in form %}
+      {% if child.vars.block_prefixes is defined and 'collection' in child.vars.block_prefixes %}
+        {# CollectionType #}
+        <div class="mb-3">
+          {{ form_label(child) }}
+          {{ form_errors(child) }}
+          {# Check if this collection uses live_component #}
+          {% set field_name = child.vars.name %}
+          {% set use_live_component = false %}
+          {% for field in form_fields %}
+            {% if field.name == field_name and field.live_component is defined and field.live_component %}
+              {% set use_live_component = true %}
+            {% endif %}
+          {% endfor %}
+          {% if use_live_component %}
+            {{ component('neox_crud.collection_live', { form: child }) }}
+          {% else %}
+            <div class="collection-container">
+              {{ form_widget(child) }}
+            </div>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="mb-3">
+          {{ form_label(child) }}
+          {{ form_widget(child) }}
+          {{ form_errors(child) }}
+          {{ form_help(child) }}
+        </div>
+      {% endif %}
+    {% endfor %}
 
     <button class="btn btn-primary">
       {{ 'Enregistrer' }}

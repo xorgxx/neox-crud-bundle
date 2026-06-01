@@ -105,6 +105,7 @@ Example:
 neox_crud:
   makers:
     relations:
+      mode: 'mix'                      # mix|interactive
       default_render: 'select'          # select|autocomplete|checkbox
       choice_label_priority: ['name', 'title', 'label', 'id']
       nullable_required: false
@@ -112,8 +113,22 @@ neox_crud:
       group_relations: true
 ```
 
+Options:
+- `mode`: `mix` (default) - questions only if ambiguous (UX Autocomplete unavailable, choice_label not found). `interactive` - always ask questions for each relation.
+- `default_render`: default render type (`select`, `autocomplete`, `checkbox`).
+- `choice_label_priority`: priority order for auto-detecting the choice_label field on related entities.
+- `nullable_required`: if `false`, nullable relations are generated with `required=false`.
+- `order`: order of relation fields in the form (`end`, `interleaved`, `start`).
+- `group_relations`: if `true`, the Maker may group relation fields (requires compatible form theme/template).
+
 Notes:
 - `default_render=autocomplete` requires Symfony UX Autocomplete (see the installation section in the guide).
+- `OneToMany` relations (inverse side): the Maker asks a question for each OneToMany relation, with automatic inference of the target FormType (e.g. `App\Entity\Product` → `App\Form\handlerType\ProductType`). The user can choose the integration type:
+  - `collection`: generates a `CollectionType` with `entry_type` pointing to the inferred FormType (requires custom JavaScript). If the FormType does not exist, the Maker offers to generate it in `Form/handlerType/`.
+  - `live-component`: generates a `CollectionType` configured for Live Component and uses the generic `neox_crud.collection_live` Live Component provided by NeoxCrudBundle. This Live Component automatically handles adding/removing items without JavaScript. If the FormType does not exist, the Maker offers to generate it in `Form/handlerType/`. See the [Live Component Guide](live-component-guide.md) for customization points.
+  - `autocomplete`: generates an `AutocompleteEntityType` with `multiple=true` (requires Symfony UX Autocomplete).
+  - `custom`: skip, the user will implement a complex system manually.
+  - `skip`: ignore this relation.
 - To render/sort/search/filter on relations in `index_fields`, you will usually set `query_path` and `join` (e.g. `category.name`, `join: left`).
 
 4) translations

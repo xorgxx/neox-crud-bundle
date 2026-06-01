@@ -6,6 +6,7 @@ namespace Neox\NeoxCrudBundle\Controller;
 
 use Neox\NeoxCrudBundle\Crud\CrudHandlerFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -186,6 +187,12 @@ class GenericCrudController extends AbstractController
         if ($isModal) {
             return $this->render('@NeoxCrud/neox_crud/form_modal.html.twig', [
                 'form'     => $form->createView(),
+                'form_interface' => $form,
+                'form_interface_holder' => new class($form) {
+                    public function __construct(public FormInterface $form)
+                    {
+                    }
+                },
                 'entity'   => $entity,
                 'resource' => $resource,
             ]);
@@ -193,6 +200,12 @@ class GenericCrudController extends AbstractController
 
         return $this->render('@NeoxCrud/neox_crud/form.html.twig', [
             'form'     => $form->createView(),
+            'form_interface' => $form,
+            'form_interface_holder' => new class($form) {
+                public function __construct(public FormInterface $form)
+                {
+                }
+            },
             'entity'   => $entity,
             'resource' => $resource,
             'base_layout' => $baseLayout,
@@ -218,9 +231,9 @@ class GenericCrudController extends AbstractController
             $handler->preUpdate($entity, $request);
             $handler->save($entity);
             $this->addFlash('success', 'Mise à jour effectuée.');
-            $this->addFlash('info', 'Mise à jour info.');
-            $this->addFlash('success', 'Mise à jour effectuée.');
-            $this->addFlash('danger', 'Mise à jour danger.');
+//            $this->addFlash('info', 'Mise à jour info.');
+//            $this->addFlash('success', 'Mise à jour effectuée.');
+//            $this->addFlash('danger', 'Mise à jour danger.');
             [$route, $params] = $handler->getRedirectAfterUpdate($entity);
 
             if ($isModal) {
@@ -257,6 +270,12 @@ class GenericCrudController extends AbstractController
         if ($isModal) {
             return $this->render('@NeoxCrud/neox_crud/form_modal.html.twig', [
                 'form'     => $form->createView(),
+                'form_interface' => $form,
+                'form_interface_holder' => new class($form) {
+                    public function __construct(public FormInterface $form)
+                    {
+                    }
+                },
                 'entity'   => $entity,
                 'resource' => $resource,
             ]);
@@ -264,6 +283,12 @@ class GenericCrudController extends AbstractController
 
         return $this->render('@NeoxCrud/neox_crud/form.html.twig', [
             'form'     => $form->createView(),
+            'form_interface' => $form,
+            'form_interface_holder' => new class($form) {
+                public function __construct(public FormInterface $form)
+                {
+                }
+            },
             'entity'   => $entity,
             'resource' => $resource,
             'base_layout' => $baseLayout,

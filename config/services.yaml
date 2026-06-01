@@ -15,6 +15,9 @@ services:
     arguments:
       $handlers: !tagged_iterator 'neox_crud.handler'
 
+  Neox\NeoxCrudBundle\Twig\Components\:
+    resource: '../src/Twig/Components/'
+
   # Generic CRUD controller
   Neox\NeoxCrudBundle\Controller\GenericCrudController:
     public: true

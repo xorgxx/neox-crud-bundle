@@ -14,8 +14,9 @@ final class FormTypeTemplateOptionsTest extends TestCase
         self::assertFileExists($tpl);
         $contents = (string) file_get_contents($tpl);
 
-        // Ensure the template is capable of emitting array literals for options (empty array in particular)
+        // Ensure the template is capable of emitting array literals for options (including non-empty arrays)
         self::assertStringContainsString('is_array($optValue)', $contents);
-        self::assertStringContainsString('empty($optValue) ? \'[]\' : \'[]\'', $contents);
+        self::assertStringContainsString('$emitArray', $contents);
+        self::assertStringContainsString("return '[' . implode", $contents);
     }
 }

@@ -15,7 +15,33 @@
   </h1>
 
   {{ form_start(form) }}
-    {{ form_widget(form) }}
+    {% for child in form %}
+      {% set is_collection = child.vars.block_prefixes is defined and 'collection' in child.vars.block_prefixes %}
+      {% set has_live_attr = child.vars.attr is defined and child.vars.attr['data-neox-live-collection'] is defined %}
+      {% set has_live_row_attr = child.vars.row_attr is defined and child.vars.row_attr['data-neox-live-collection'] is defined %}
+      {% set is_live_collection = is_collection and (has_live_attr or has_live_row_attr) %}
+
+      {% if is_collection %}
+        <div class="mb-3 text-start">
+          {{ form_label(child) }}
+          {{ form_errors(child) }}
+          {% if is_live_collection %}
+            {{ component('neox_crud.collection_live', { resource: resource, entityId: entity.id, fieldName: child.vars.name }) }}
+            {% do child.setRendered() %}
+          {% else %}
+            <div class="collection-container">
+              {{ form_widget(child) }}
+            </div>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="mb-3 text-start">
+          {{ form_label(child) }}
+          {{ form_widget(child) }}
+          {{ form_errors(child) }}
+        </div>
+      {% endif %}
+    {% endfor %}
 
     <button class="btn btn-primary">Enregistrer</button>
 
