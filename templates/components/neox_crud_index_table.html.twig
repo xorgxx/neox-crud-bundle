@@ -334,13 +334,26 @@
           {% endfor %}
         {% endif %}
 
-        {% if granted %}
-          {% set value = attribute(item, col.name) %}
+{#        {% if granted %}#}
+{#          {% set value = attribute(item, col.name) %}#}
 
-            <td class="text-start pe-3">
-                {{ renderer.render_cell(value, col.options) }}
-            </td>
-        {% endif %}
+{#            <td class="text-start pe-3">#}
+{#                {{ renderer.render_cell(value, col.options) }}#}
+{#            </td>#}
+{#        {% endif %}#}
+          {% if granted %}
+              {% set value = attribute(item, col.name) %}
+              {% if col.query_path is defined and col.query_path is not empty %}
+                  {% set pathParts = col.query_path|split('.') %}
+                  {% for part in pathParts|slice(1) %}  {# Ignorer le premier segment #}
+                      {% set value = attribute(value, part) %}
+                  {% endfor %}
+              {% endif %}
+
+              <td class="text-start pe-3">
+                  {{ renderer.render_cell(value, col.options) }}
+              </td>
+          {% endif %}
       {% endfor %}
 
       <td class="align-middle text-end" style="width: 1%; white-space: nowrap;">

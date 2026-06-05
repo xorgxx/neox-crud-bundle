@@ -231,7 +231,7 @@ index_fields:
 Useful options (mainly for LiveTable)
 - `sortable` (bool): enables sorting on this column (LiveTable)
 - `searchable` (bool): includes this field in the text search (LiveTable)
-- `query_path` (string): DQL path, useful for relations (e.g. `user.email`)
+- `query_path` (string): DQL path for relations (e.g. `user.email`). Used for SQL query AND for rendering the value in the template (navigates to the specified field).
 - `join` (string): `left` (default) or `inner` (when `query_path` traverses relations)
 - `label` (string): displayed column label
 
@@ -416,7 +416,17 @@ index_fields:
 Currently recognized options (non‑exhaustive):
 - `format`: string. For dates, any PHP date format (e.g. `Y-m-d`). For plain text, you may set `text`.
 - `boolean_icon`: bool. If true, render a check/cross icon for booleans.
-- `type`: string. For example `image` to suggest rendering an `<img>` using the field value as URL/path.
+- `type`: string. Available automatic rendering types:
+  - `truncate`: truncates text. Options: `length` (default: 50).
+  - `currency`: monetary formatting. Options: `symbol` (default: '€'), `decimals` (default: 2).
+  - `number`: numeric formatting. Options: `decimals` (default: 2), `decimal_separator` (default: ','), `thousand_separator` (default: ' ').
+  - `percent`: percentage. Options: `decimals` (default: 0).
+  - `badge`: colored badge. Options: `color_map` (value → Bootstrap color map, e.g. `{ active: 'success', inactive: 'secondary' }`).
+  - `boolean_badge`: success/danger badge for booleans (Yes/No).
+  - `link`: clickable link. Options: `target` (default: '_blank').
+  - `email`: mailto link.
+  - `image`: `<img>` tag. Options: `class` (CSS class).
+  - `enum`: displays PHP enum value (uses `value.value` for string-backed enums).
 - `class`: string. Additional CSS class to apply (e.g. on an image tag).
 - `voters` or `voter`: string|string[] of security attributes; the template/controller can leverage this to hide a field when not granted.
 

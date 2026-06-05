@@ -20,7 +20,9 @@
         {{ _self.email(value) }}
     {% elseif type == 'image' and value %}
         <img src="{{ value }}" class="{{ options.class|default('') }}" alt="">
-    
+    {% elseif type == 'enum' %}
+        {{ value.value }}
+
     {# Legacy options (rétrocompatibilité) #}
     {% elseif options.boolean_icon|default(false) %}
         {{ _self.boolean_icon(value) }}

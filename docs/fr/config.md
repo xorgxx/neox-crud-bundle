@@ -207,7 +207,7 @@ index_fields:
 Options utiles (surtout pour la LiveTable)
 - `sortable` (bool) : autorise le tri sur cette colonne (LiveTable)
 - `searchable` (bool) : inclut le champ dans la recherche texte (LiveTable)
-- `query_path` (string) : chemin DQL, utile pour les relations (ex: `user.email`)
+- `query_path` (string) : chemin DQL pour les relations (ex: `user.email`). Utilisé pour la requête SQL ET pour l'affichage de la valeur dans le template (navigue jusqu'au champ spécifié).
 - `join` (string) : `left` (défaut) ou `inner` (si `query_path` traverse des relations)
 - `label` (string) : libellé affiché de la colonne
 
@@ -402,6 +402,7 @@ Options de rendu (liste non exhaustive) :
   - `link` : lien cliquable. Options : `target` (défaut: '_blank').
   - `email` : lien mailto.
   - `image` : balise `<img>`. Options : `class` (classe CSS).
+  - `enum` : affiche la valeur d'un enum PHP (utilise `value.value` pour les backed enums string).
 - `class` : string. Classe(s) CSS supplémentaires (pour type: image).
 - `voters` ou `voter` : string ou string[] d’attributs de sécurité ; le template peut masquer un champ si non autorisé.
 
