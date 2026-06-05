@@ -403,6 +403,8 @@ Options de rendu (liste non exhaustive) :
   - `email` : lien mailto.
   - `image` : balise `<img>`. Options : `class` (classe CSS).
   - `enum` : affiche la valeur d'un enum PHP (utilise `value.value` pour les backed enums string).
+  - `json` : encode la valeur en JSON (utile pour les tableaux/objets).
+  - `array` : joint les éléments d'un tableau avec ', ' (équivalent au comportement par défaut pour les itérables).
 - `class` : string. Classe(s) CSS supplémentaires (pour type: image).
 - `voters` ou `voter` : string ou string[] d’attributs de sécurité ; le template peut masquer un champ si non autorisé.
 

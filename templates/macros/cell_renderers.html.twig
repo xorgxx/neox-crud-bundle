@@ -22,6 +22,10 @@
         <img src="{{ value }}" class="{{ options.class|default('') }}" alt="">
     {% elseif type == 'enum' %}
         {{ value.value }}
+    {% elseif type == 'json' %}
+        {{ value|json_encode }}
+    {% elseif type == 'array' %}
+        {{ value|join(', ') }}
 
     {# Legacy options (rétrocompatibilité) #}
     {% elseif options.boolean_icon|default(false) %}

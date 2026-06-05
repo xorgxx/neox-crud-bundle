@@ -427,6 +427,8 @@ Currently recognized options (non‑exhaustive):
   - `email`: mailto link.
   - `image`: `<img>` tag. Options: `class` (CSS class).
   - `enum`: displays PHP enum value (uses `value.value` for string-backed enums).
+  - `json`: encodes value as JSON (useful for arrays/objects).
+  - `array`: joins array elements with ', ' (equivalent to default behavior for iterables).
 - `class`: string. Additional CSS class to apply (e.g. on an image tag).
 - `voters` or `voter`: string|string[] of security attributes; the template/controller can leverage this to hide a field when not granted.
 
